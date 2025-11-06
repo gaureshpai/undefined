@@ -1,27 +1,27 @@
-"use client";
+"use client"
 
-import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, SquarePlus, List, CheckCircle2 } from "lucide-react";
-import CreateBuildingForm from "@/components/admin/create-building-form";
-import BuildingsList from "@/components/admin/buildings-list";
-import RequestsList from "@/components/admin/requests-list";
+import { useAuth } from "@/lib/auth-context"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { LogOut, SquarePlus, List, CheckCircle2 } from "lucide-react"
+import CreateBuildingForm from "@/components/admin/create-building-form"
+import BuildingsList from "@/components/admin/buildings-list"
+import RequestsList from "@/components/admin/requests-list"
 
 export default function AdminDashboard() {
-  const router = useRouter();
-  const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState("buildings");
+  const router = useRouter()
+  const { user, logout } = useAuth()
+  const [activeTab, setActiveTab] = useState("buildings")
 
   if (!user.isConnected || user.role !== "admin") {
-    router.push("/");
-    return null;
+    router.push("/")
+    return null
   }
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push("/");
   };
 
@@ -39,12 +39,7 @@ export default function AdminDashboard() {
               <p className="text-xs text-slate-400">Asset Management System</p>
             </div>
           </div>
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            size="sm"
-            className="border-slate-600 bg-transparent"
-          >
+          <Button onClick={handleLogout} size="sm" className="border-slate-600 bg-black/30 hover:bg-black/40 text-white">
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
@@ -55,24 +50,15 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-slate-700/50 mb-8">
-            <TabsTrigger
-              value="buildings"
-              className="data-[state=active]:bg-amber-600 flex items-center gap-2"
-            >
+            <TabsTrigger value="buildings" className="data-[state=active]:bg-amber-600 text-white data-[state=active]:text-black flex items-center gap-2  transition-all duration-200">
               <SquarePlus className="w-4 h-4" />
               Create Building
             </TabsTrigger>
-            <TabsTrigger
-              value="list"
-              className="data-[state=active]:bg-amber-600 flex items-center gap-2"
-            >
+            <TabsTrigger value="list" className="data-[state=active]:bg-amber-600 text-white data-[state=active]:text-black flex items-center gap-2  transition-all duration-200">
               <List className="w-4 h-4" />
               Buildings
             </TabsTrigger>
-            <TabsTrigger
-              value="requests"
-              className="data-[state=active]:bg-amber-600 flex items-center gap-2"
-            >
+            <TabsTrigger value="requests" className="data-[state=active]:bg-amber-600 text-white data-[state=active]:text-black flex items-center gap-2  transition-all duration-200">
               <CheckCircle2 className="w-4 h-4" />
               Requests
             </TabsTrigger>
@@ -81,12 +67,8 @@ export default function AdminDashboard() {
           {/* Create Building Tab */}
           <TabsContent value="buildings" className="space-y-6">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-white">
-                Create New Asset Token
-              </h2>
-              <p className="text-slate-400 text-sm">
-                Create a new tokenized building asset and assign ownership
-              </p>
+              <h2 className="text-2xl font-bold text-white">Create New Asset Token</h2>
+              <p className="text-slate-400 text-sm">Create a new tokenized building asset and assign ownership</p>
             </div>
             <CreateBuildingForm />
           </TabsContent>
@@ -95,9 +77,7 @@ export default function AdminDashboard() {
           <TabsContent value="list" className="space-y-6">
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-white">All Buildings</h2>
-              <p className="text-slate-400 text-sm">
-                Manage and view all tokenized assets
-              </p>
+              <p className="text-slate-400 text-sm">Manage and view all tokenized assets</p>
             </div>
             <BuildingsList />
           </TabsContent>
@@ -105,17 +85,13 @@ export default function AdminDashboard() {
           {/* Requests Tab */}
           <TabsContent value="requests" className="space-y-6">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-white">
-                Pending Requests
-              </h2>
-              <p className="text-slate-400 text-sm">
-                Review and approve/reject tokenization requests
-              </p>
+              <h2 className="text-2xl font-bold text-white">Pending Requests</h2>
+              <p className="text-slate-400 text-sm">Review and approve/reject tokenization requests</p>
             </div>
             <RequestsList />
           </TabsContent>
         </Tabs>
       </div>
     </div>
-  );
+  )
 }

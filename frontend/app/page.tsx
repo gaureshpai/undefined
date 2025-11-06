@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -17,10 +17,11 @@ export default function Home() {
   const [adminError, setAdminError] = useState("")
   const [activeTab, setActiveTab] = useState("user")
 
-  if (user.isConnected) {
-    router.push(user.role === "admin" ? "/admin" : "/portfolio")
-    return null
-  }
+  useEffect(() => {
+    if (user.isConnected) {
+      router.push(user.role === "admin" ? "/admin" : "/portfolio")
+    }
+  }, [user, router])
 
   const handleMetaMaskLogin = async () => {
     await loginWithMetaMask()
@@ -38,7 +39,9 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black opacity-50"></div>
+      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-5"></div>
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
@@ -57,7 +60,7 @@ export default function Home() {
           <p className="text-slate-400">Tokenized Asset Management</p>
         </div>
 
-        <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+        <Card className="border-gray-700 bg-gray-800/60 backdrop-blur-lg shadow-2xl shadow-blue-500/10">
           <CardHeader className="border-b border-slate-700">
             <CardTitle className="text-white">Login</CardTitle>
             <CardDescription>Choose your login method to continue</CardDescription>
@@ -65,11 +68,11 @@ export default function Home() {
 
           <CardContent className="pt-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-slate-700/50">
-                <TabsTrigger value="user" className="data-[state=active]:bg-blue-600">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-900/50 rounded-md p-1">
+                <TabsTrigger value="user" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-400 rounded-sm transition-all duration-200">
                   User
                 </TabsTrigger>
-                <TabsTrigger value="admin" className="data-[state=active]:bg-blue-600">
+                <TabsTrigger value="admin" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-400 rounded-sm transition-all duration-200">
                   Admin
                 </TabsTrigger>
               </TabsList>
@@ -85,17 +88,17 @@ export default function Home() {
                     onClick={handleMetaMaskLogin}
                     disabled={isLoading}
                     size="lg"
-                    className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold h-12 rounded-lg transition-all"
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold h-12 rounded-lg transition-all shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30"
                   >
                     {isLoading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Connecting...
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Connecting...</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
-                        <Wallet className="w-5 h-5" />
-                        Connect MetaMask
+                      <div className="flex items-center justify-center gap-2">
+                        <Wallet className="w-6 h-6" />
+                        <span>Connect MetaMask</span>
                       </div>
                     )}
                   </Button>
@@ -135,18 +138,18 @@ export default function Home() {
                           handleAdminLogin()
                         }
                       }}
-                      className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
+                      className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-500 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     />
                   </div>
 
                   <Button
                     onClick={handleAdminLogin}
                     size="lg"
-                    className="w-full bg-linear-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold h-12 rounded-lg transition-all"
+                    className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold h-12 rounded-lg transition-all shadow-md shadow-amber-500/20 hover:shadow-lg hover:shadow-amber-500/30"
                   >
-                    <div className="flex items-center gap-2">
-                      <Lock className="w-5 h-5" />
-                      Login as Admin
+                    <div className="flex items-center justify-center gap-2">
+                      <Lock className="w-6 h-6" />
+                      <span>Login as Admin</span>
                     </div>
                   </Button>
 

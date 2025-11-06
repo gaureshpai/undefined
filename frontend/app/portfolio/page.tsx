@@ -54,10 +54,10 @@ export default function PortfolioDashboard() {
     })
   }, [user, buildings, router])
 
-  const handleLogout = () => {
-    logout()
-    router.push("/")
-  }
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+  };
 
   if (!mounted || !ownershipData) {
     return (
@@ -68,9 +68,11 @@ export default function PortfolioDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-linear-to-br from-gray-900 via-gray-800 to-black opacity-50"></div>
+      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-5"></div>
       {/* Header */}
-      <div className="border-b border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+      <div className="border-b border-gray-700 bg-gray-800/60 backdrop-blur-lg sticky top-0 z-50 shadow-md shadow-blue-500/10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
@@ -88,7 +90,7 @@ export default function PortfolioDashboard() {
                 {user.address?.slice(0, 6)}...{user.address?.slice(-4)}
               </p>
             </div>
-            <Button onClick={handleLogout} variant="outline" size="sm" className="border-slate-600 bg-transparent">
+            <Button onClick={handleLogout} variant="outline" size="sm" className="border-gray-600 bg-transparent hover:bg-gray-700 hover:text-white transition-all">
               <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>
@@ -100,22 +102,22 @@ export default function PortfolioDashboard() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+          <Card className="border-gray-700 bg-gray-800/60 backdrop-blur-lg shadow-lg shadow-blue-500/10">
             <CardHeader className="pb-3">
-              <CardTitle className="text-slate-400 text-sm flex items-center gap-2">
+              <CardTitle className="text-gray-400 text-sm flex items-center gap-2">
                 <Building2 className="w-4 h-4" />
                 Assets Owned
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-white">{ownershipData.totalAssets}</div>
-              <p className="text-xs text-slate-500 mt-1">Approved tokenized assets</p>
+              <p className="text-xs text-gray-500 mt-1">Approved tokenized assets</p>
             </CardContent>
           </Card>
 
-          <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+          <Card className="border-gray-700 bg-gray-800/60 backdrop-blur-lg shadow-lg shadow-blue-500/10">
             <CardHeader className="pb-3">
-              <CardTitle className="text-slate-400 text-sm flex items-center gap-2">
+              <CardTitle className="text-gray-400 text-sm flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Portfolio Value
               </CardTitle>
@@ -126,16 +128,16 @@ export default function PortfolioDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+          <Card className="border-gray-700 bg-gray-800/60 backdrop-blur-lg shadow-lg shadow-blue-500/10">
             <CardHeader className="pb-3">
-              <CardTitle className="text-slate-400 text-sm flex items-center gap-2">
+              <CardTitle className="text-gray-400 text-sm flex items-center gap-2">
                 <Wallet className="w-4 h-4" />
                 Wallet Address
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs font-mono text-slate-300 truncate">{user.address}</p>
-              <p className="text-xs text-slate-500 mt-2">Ethereum Network</p>
+              <p className="text-xs font-mono text-gray-300 truncate">{user.address}</p>
+              <p className="text-xs text-gray-500 mt-2">Ethereum Network</p>
             </CardContent>
           </Card>
         </div>
@@ -152,13 +154,13 @@ export default function PortfolioDashboard() {
               {ownershipData.fractionalOwnership.map((holding, index) => (
                 <Card
                   key={index}
-                  className="border-slate-700 bg-slate-800/50 backdrop-blur-lg hover:border-slate-600 transition-colors"
+                  className="border-gray-700 bg-gray-800/60 backdrop-blur-lg hover:border-gray-600 transition-colors shadow-md hover:shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20"
                 >
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
                         <CardTitle className="text-white">{holding.buildingName}</CardTitle>
-                        <CardDescription className="text-slate-400">Token: {holding.tokenId}</CardDescription>
+                        <CardDescription className="text-gray-400">Token: {holding.tokenId}</CardDescription>
                       </div>
                       <FileCheck className="w-5 h-5 text-green-500" />
                     </div>
@@ -166,9 +168,9 @@ export default function PortfolioDashboard() {
                   <CardContent>
                     <div className="space-y-3">
                       <div>
-                        <p className="text-xs text-slate-400 mb-1">Ownership Stake</p>
+                        <p className="text-xs text-gray-400 mb-1">Ownership Stake</p>
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-slate-700 rounded-full h-2">
+                          <div className="flex-1 bg-gray-700 rounded-full h-2">
                             <div
                               className="bg-linear-to-r from-blue-600 to-indigo-600 h-full rounded-full"
                               style={{ width: `${holding.percentage}%` }}
@@ -177,8 +179,8 @@ export default function PortfolioDashboard() {
                           <span className="text-sm font-bold text-white">{holding.percentage}%</span>
                         </div>
                       </div>
-                      <div className="pt-2 border-t border-slate-700">
-                        <p className="text-xs text-slate-500">
+                      <div className="pt-2 border-t border-gray-700">
+                        <p className="text-xs text-gray-500">
                           You own <span className="text-white font-semibold">{holding.percentage}%</span> of this
                           property
                         </p>
@@ -189,11 +191,11 @@ export default function PortfolioDashboard() {
               ))}
             </div>
           ) : (
-            <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+            <Card className="border-gray-700 bg-gray-800/60 backdrop-blur-lg shadow-lg shadow-blue-500/10">
               <CardContent className="pt-12 text-center">
-                <Building2 className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                <p className="text-slate-400">No tokenized assets in your portfolio yet</p>
-                <p className="text-sm text-slate-500 mt-1">Check back when new assets are listed</p>
+                <Building2 className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-400">No tokenized assets in your portfolio yet</p>
+                <p className="text-sm text-gray-500 mt-1">Check back when new assets are listed</p>
               </CardContent>
             </Card>
           )}

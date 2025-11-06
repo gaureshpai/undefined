@@ -1,83 +1,128 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useAssetStore } from "@/lib/store"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Upload, FileCheck, AlertCircle } from "lucide-react"
-import type { BuildingAsset } from "@/lib/asset-data"
+import { useState } from "react";
+import { useAssetStore } from "@/lib/store";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Upload, FileCheck, AlertCircle, Trash2 } from "lucide-react";
+import type { BuildingAsset } from "@/lib/asset-data";
 
 interface FileUpload {
-  partnershipAgreement: File | null
-  maintenanceAgreement: File | null
-  rentAgreement: File | null
+  partnershipAgreement: File | null;
+  maintenanceAgreement: File | null;
+  rentAgreement: File | null;
 }
 
 export default function CreateBuildingForm() {
-  const { addBuilding } = useAssetStore()
+  const { addBuilding } = useAssetStore();
   const [formData, setFormData] = useState({
     name: "",
     location: "",
-    ownerAddress: "",
-    ownershipPercentage: 100,
-  })
+    owners: [{ address: "", percentage: 100 }],
+  });
   const [files, setFiles] = useState<FileUpload>({
     partnershipAgreement: null,
     maintenanceAgreement: null,
     rentAgreement: null,
-  })
-  const [success, setSuccess] = useState(false)
-  const [errorMsg, setErrorMsg] = useState("")
+  });
+  const [success, setSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, fileType: keyof FileUpload) => {
+  const handleFileUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fileType: keyof FileUpload
+  ) => {
     if (e.target.files?.[0]) {
       setFiles((prev) => ({
         ...prev,
         [fileType]: e.target.files![0],
-      }))
-      setErrorMsg("")
+      }));
+      setErrorMsg("");
     }
-  }
+  };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleOwnerChange = (
+    index: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { name, value } = e.target;
+    const newOwners = [...formData.owners];
+    newOwners[index] = {
+      ...newOwners[index],
+      [name]: name === "percentage" ? Number(value) : value,
+    };
+    setFormData((prev) => ({ ...prev, owners: newOwners }));
+  };
+
+  const addOwner = () => {
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "ownershipPercentage" ? Number.parseFloat(value) : value,
-    }))
-  }
+      owners: [...prev.owners, { address: "", percentage: 0 }],
+    }));
+  };
+
+  const removeOwner = (index: number) => {
+    const newOwners = [...formData.owners];
+    newOwners.splice(index, 1);
+    setFormData((prev) => ({ ...prev, owners: newOwners }));
+  };
 
   const generateTokenId = () => {
-    return `TOKEN-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-  }
+    return `TOKEN-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+  };
 
   const generateBuildingId = () => {
-    return `BLD-${Date.now()}`
-  }
+    return `BLD-${Date.now()}`;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setErrorMsg("")
-    setSuccess(false)
+    e.preventDefault();
+    setErrorMsg("");
+    setSuccess(false);
 
-    // Validation
-    if (!formData.name || !formData.location || !formData.ownerAddress) {
-      setErrorMsg("Please fill in all required fields")
-      return
+    if (!formData.name || !formData.location) {
+      setErrorMsg("Please fill in all required fields");
+      return;
     }
 
-    if (!files.partnershipAgreement || !files.maintenanceAgreement || !files.rentAgreement) {
-      setErrorMsg("Please upload all required documents")
-      return
+    if (formData.owners.some((owner) => !owner.address || !owner.percentage)) {
+      setErrorMsg("Please fill in all owner fields");
+      return;
     }
 
-    if (formData.ownershipPercentage <= 0 || formData.ownershipPercentage > 100) {
-      setErrorMsg("Ownership percentage must be between 0 and 100")
-      return
+    const totalPercentage = formData.owners.reduce(
+      (acc, owner) => acc + Number(owner.percentage),
+      0
+    );
+    if (totalPercentage !== 100) {
+      setErrorMsg("Total ownership percentage must be 100%");
+      return;
+    }
+
+    if (
+      !files.partnershipAgreement ||
+      !files.maintenanceAgreement ||
+      !files.rentAgreement
+    ) {
+      setErrorMsg("Please upload all required documents");
+      return;
     }
 
     // Create new building asset
@@ -85,7 +130,7 @@ export default function CreateBuildingForm() {
       id: generateBuildingId(),
       name: formData.name,
       location: formData.location,
-      owner: formData.ownerAddress,
+      owner: formData.owners[0].address, // Keep the first owner as the main owner for now
       tokenId: generateTokenId(),
       files: {
         partnershipAgreement: files.partnershipAgreement.name,
@@ -94,36 +139,35 @@ export default function CreateBuildingForm() {
       },
       createdAt: new Date().toISOString(),
       status: "pending",
-      fractionalOwnership: [
-        {
-          address: formData.ownerAddress,
-          percentage: formData.ownershipPercentage,
-        },
-      ],
-    }
+      fractionalOwnership: formData.owners.map((owner) => ({
+        address: owner.address,
+        percentage: Number(owner.percentage),
+      })),
+    };
 
-    addBuilding(newBuilding)
-    setSuccess(true)
+    addBuilding(newBuilding);
+    setSuccess(true);
     setFormData({
       name: "",
       location: "",
-      ownerAddress: "",
-      ownershipPercentage: 100,
-    })
+      owners: [{ address: "", percentage: 100 }],
+    });
     setFiles({
       partnershipAgreement: null,
       maintenanceAgreement: null,
       rentAgreement: null,
-    })
+    });
 
-    setTimeout(() => setSuccess(false), 5000)
-  }
+    setTimeout(() => setSuccess(false), 5000);
+  };
 
   return (
     <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
       <CardHeader>
         <CardTitle className="text-white">Create New Tokenized Asset</CardTitle>
-        <CardDescription>Register a building and create its digital token representation</CardDescription>
+        <CardDescription>
+          Register a building and create its digital token representation
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -131,7 +175,8 @@ export default function CreateBuildingForm() {
             <Alert className="border-green-500/50 bg-green-500/10">
               <FileCheck className="h-4 w-4 text-green-500" />
               <AlertDescription className="text-green-400">
-                Building asset created successfully! Token created and pending approval.
+                Building asset created successfully! Token created and pending
+                approval.
               </AlertDescription>
             </Alert>
           )}
@@ -139,7 +184,9 @@ export default function CreateBuildingForm() {
           {errorMsg && (
             <Alert className="border-red-500/50 bg-red-500/10">
               <AlertCircle className="h-4 w-4 text-red-500" />
-              <AlertDescription className="text-red-400">{errorMsg}</AlertDescription>
+              <AlertDescription className="text-red-400">
+                {errorMsg}
+              </AlertDescription>
             </Alert>
           )}
 
@@ -148,7 +195,9 @@ export default function CreateBuildingForm() {
             <h3 className="text-white font-semibold">Asset Information</h3>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-200">Building Name *</label>
+              <label className="text-sm font-medium text-slate-200">
+                Building Name *
+              </label>
               <Input
                 type="text"
                 name="name"
@@ -161,7 +210,9 @@ export default function CreateBuildingForm() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-200">Location *</label>
+              <label className="text-sm font-medium text-slate-200">
+                Location *
+              </label>
               <Input
                 type="text"
                 name="location"
@@ -173,35 +224,59 @@ export default function CreateBuildingForm() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-200">Owner Wallet Address *</label>
-                <Input
-                  type="text"
-                  name="ownerAddress"
-                  placeholder="0x..."
-                  value={formData.ownerAddress}
-                  onChange={handleInputChange}
-                  className="bg-slate-700/50 border-slate-600 text-white font-mono text-xs"
-                  required
-                />
-              </div>
+            {formData.owners.map((owner, index) => (
+              <div key={index} className="grid grid-cols-12 gap-4 items-end">
+                <div className="space-y-2 col-span-6">
+                  <label className="text-sm font-medium text-slate-200">
+                    Owner Wallet Address *
+                  </label>
+                  <Input
+                    type="text"
+                    name="address"
+                    placeholder="0x..."
+                    value={owner.address}
+                    onChange={(e) => handleOwnerChange(index, e)}
+                    className="bg-slate-700/50 border-slate-600 text-white font-mono text-xs"
+                    required
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-200">Ownership % *</label>
-                <Input
-                  type="number"
-                  name="ownershipPercentage"
-                  placeholder="100"
-                  min="1"
-                  max="100"
-                  value={formData.ownershipPercentage}
-                  onChange={handleInputChange}
-                  className="bg-slate-700/50 border-slate-600 text-white"
-                  required
-                />
+                <div className="space-y-2 col-span-4">
+                  <label className="text-sm font-medium text-slate-200">
+                    Ownership % *
+                  </label>
+                  <Input
+                    type="number"
+                    name="percentage"
+                    placeholder="100"
+                    min="1"
+                    max="100"
+                    value={owner.percentage}
+                    onChange={(e) => handleOwnerChange(index, e)}
+                    className="bg-slate-700/50 border-slate-600 text-white"
+                    required
+                  />
+                </div>
+                <div className="col-span-2 flex items-end">
+                  {formData.owners.length > 1 && (
+                    <Button
+                      type="button"
+                      onClick={() => removeOwner(index)}
+                      className="bg-red-500 hover:bg-red-600 text-white"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
+            ))}
+            <Button
+              type="button"
+              onClick={addOwner}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              + Add Owner
+            </Button>
           </div>
 
           {/* Document Uploads */}
@@ -210,7 +285,9 @@ export default function CreateBuildingForm() {
 
             {/* Partnership Agreement */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-200">Partnership Agreement *</label>
+              <label className="text-sm font-medium text-slate-200">
+                Partnership Agreement *
+              </label>
               <div className="relative">
                 <input
                   type="file"
@@ -222,7 +299,9 @@ export default function CreateBuildingForm() {
                 <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-slate-600 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 transition-colors">
                   <Upload className="w-4 h-4 text-slate-400" />
                   <span className="text-sm text-slate-300">
-                    {files.partnershipAgreement ? files.partnershipAgreement.name : "Upload partnership agreement"}
+                    {files.partnershipAgreement
+                      ? files.partnershipAgreement.name
+                      : "Upload partnership agreement"}
                   </span>
                 </div>
               </div>
@@ -230,7 +309,9 @@ export default function CreateBuildingForm() {
 
             {/* Maintenance Agreement */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-200">Maintenance Agreement *</label>
+              <label className="text-sm font-medium text-slate-200">
+                Maintenance Agreement *
+              </label>
               <div className="relative">
                 <input
                   type="file"
@@ -242,7 +323,9 @@ export default function CreateBuildingForm() {
                 <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-slate-600 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 transition-colors">
                   <Upload className="w-4 h-4 text-slate-400" />
                   <span className="text-sm text-slate-300">
-                    {files.maintenanceAgreement ? files.maintenanceAgreement.name : "Upload maintenance agreement"}
+                    {files.maintenanceAgreement
+                      ? files.maintenanceAgreement.name
+                      : "Upload maintenance agreement"}
                   </span>
                 </div>
               </div>
@@ -250,7 +333,9 @@ export default function CreateBuildingForm() {
 
             {/* Rent Agreement */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-200">Rent Agreement *</label>
+              <label className="text-sm font-medium text-slate-200">
+                Rent Agreement *
+              </label>
               <div className="relative">
                 <input
                   type="file"
@@ -262,7 +347,9 @@ export default function CreateBuildingForm() {
                 <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-slate-600 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 transition-colors">
                   <Upload className="w-4 h-4 text-slate-400" />
                   <span className="text-sm text-slate-300">
-                    {files.rentAgreement ? files.rentAgreement.name : "Upload rent agreement"}
+                    {files.rentAgreement
+                      ? files.rentAgreement.name
+                      : "Upload rent agreement"}
                   </span>
                 </div>
               </div>
@@ -278,5 +365,5 @@ export default function CreateBuildingForm() {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

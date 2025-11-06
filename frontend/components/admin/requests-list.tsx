@@ -77,7 +77,7 @@ export default function RequestsList() {
                     </div>
                   )}
 
-                  <div className="flex gap-3 pt-4 border-t border-slate-700">
+                  <div className="flex gap-20 pt-4 border-t border-slate-700">
                     <Button
                       onClick={() => updateRequestStatus(request.id, "approved")}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white"

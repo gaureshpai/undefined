@@ -19,7 +19,7 @@ interface AuthContextType {
   user: User;
   loginWithMetaMask: () => Promise<void>;
   adminLogin: (password: string) => boolean;
-  logout: () => void;
+  logout: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -58,7 +58,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Check if user was previously connected
     checkMetaMaskConnection();
-  }, [checkMetaMaskConnection]);
+
+    // Check if admin was previously logged in
+    const isAdmin = localStorage.getItem("isAdmin");
+    if (isAdmin === "true") {
+      setUser({
+        address: "admin",
+        role: "admin",
+        isConnected: true,
+      });
+    }
+  }, []);
 
   const loginWithMetaMask = async () => {
     if (typeof window === "undefined" || !(window as any).ethereum) {
@@ -94,12 +104,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: "admin",
         isConnected: true,
       });
+      localStorage.setItem("isAdmin", "true");
       return true;
     }
     return false;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await (window as any).ethereum.request({
+        method: "wallet_revokePermissions",
+        params: [{ eth_accounts: {} }],
+      });
+    } catch (error) {
+      console.error("Failed to disconnect MetaMask:", error);
+    }
+    localStorage.removeItem("isAdmin");
     setUser({
       address: undefined,
       role: null,
