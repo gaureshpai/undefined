@@ -8,6 +8,7 @@ import {
   useEffect,
 } from "react";
 import { blockchainService } from "./blockchain-service";
+import type { Signer } from "ethers";
 
 interface User {
   address?: string;
@@ -22,6 +23,7 @@ interface AuthContextType {
   logout: () => void;
   loginWithMetaMask: () => Promise<void>;
   isLoading: boolean;
+  signer: Signer | null; // Add this line
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const ADMIN_PASSWORD = "admin@123";
-  const ADMIN_PRIVATE_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bac478cbed5ef2744c09d1a3775f892"; // Example private key for admin
+  const ADMIN_PRIVATE_KEY = "0xde6ea022157f9fe8d2f4b1aff42ea0d7aa44e0c6d814119546d8fd0e2ff4ae49"; // Example private key for admin
 
   useEffect(() => {
     // Check if admin was previously logged in
@@ -113,7 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loginWithPrivateKey, adminLogin, logout, loginWithMetaMask, isLoading }}
+      value={{ user, loginWithPrivateKey, adminLogin, logout, loginWithMetaMask, isLoading, signer: blockchainService.getSigner() }}
     >
       {children}
     </AuthContext.Provider>

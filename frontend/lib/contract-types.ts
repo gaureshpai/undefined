@@ -53,3 +53,9 @@ export interface TransferFullOwnershipParams {
   propertyId: number;
   to: string;
 }
+
+export interface InitiateMediatedTransferParams {
+  propertyId: number;
+  to: string;
+  from: string;
+}

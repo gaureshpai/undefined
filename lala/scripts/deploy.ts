@@ -29,6 +29,17 @@ async function main() {
 
   console.log("Sample property 'Green Villa' registered successfully!");
   console.log("Property Count:", (await propertyRegistry.propertyCount()).toString());
+
+  console.log("\nDeploying MediatedTransfer contract...");
+
+  // Get the contract factory
+  const MediatedTransfer = await ethers.getContractFactory("MediatedTransfer");
+
+  // Deploy the contract
+  const mediatedTransfer = await MediatedTransfer.deploy(propertyRegistry.address);
+  await mediatedTransfer.deployed();
+
+  console.log("MediatedTransfer deployed to:", mediatedTransfer.address);
 }
 
 main()
