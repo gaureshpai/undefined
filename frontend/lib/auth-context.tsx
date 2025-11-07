@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { Magic } from 'magic-sdk';
 import { blockchainService } from './blockchain-service';
 
@@ -58,11 +58,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const address = await blockchainService.initializeWithMagic(magic);
             const adminList = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || process.env.NEXT_PUBLIC_ADMIN_EMAIL || '').toLowerCase();
             const isAdmin = adminList.split(',').map(s=>s.trim()).filter(Boolean).includes(info.email.toLowerCase());
-            setUser({
+            const next = {
               email: info.email,
               address,
               role: isAdmin ? 'admin' : 'user',
               isConnected: true,
+            } as User;
+            setUser(prev => {
+              if (
+                prev.email === next.email &&
+                prev.address === next.address &&
+                prev.role === next.role &&
+                prev.isConnected === next.isConnected
+              ) {
+                return prev;
+              }
+              return next;
             });
           }
         }
@@ -73,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkUser();
   }, [magic]);
 
-  const authenticate = async (email: string) => {
+  const authenticate = useCallback(async (email: string) => {
     setIsLoading(true);
     try {
       if (!magic) throw new Error('Magic SDK not initialized');
@@ -84,11 +95,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const address = await blockchainService.initializeWithMagic(magic);
       const adminList = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || process.env.NEXT_PUBLIC_ADMIN_EMAIL || '').toLowerCase();
       const isAdmin = adminList.split(',').map(s=>s.trim()).filter(Boolean).includes(email.toLowerCase());
-      setUser({
+      const next = {
         email,
         address,
         role: isAdmin ? 'admin' : 'user',
         isConnected: true,
+      } as User;
+      setUser(prev => {
+        if (
+          prev.email === next.email &&
+          prev.address === next.address &&
+          prev.role === next.role &&
+          prev.isConnected === next.isConnected
+        ) {
+          return prev;
+        }
+        return next;
       });
     } catch (error) {
       console.error('Authentication via OTP failed:', error);
@@ -96,15 +118,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
-
-
+  }, [magic]);
 
   const exportPrivateKey = async (): Promise<string> => {
     throw new Error('Wallet operations are disabled');
   };
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     if (magic) {
       try {
         await magic.user.logout();
@@ -112,16 +132,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Magic logout failed:', error);
       }
     }
-    
     setUser({
       email: undefined,
       address: undefined,
       role: null,
       isConnected: false,
     });
-  };
+  }, [magic]);
 
-  const adminLogin = async (email: string, password: string) => {
+  const adminLogin = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     try {
       const { adminLoginAction } = await import('@/app/actions/admin-auth');
@@ -130,21 +149,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const adminPk = process.env.NEXT_PUBLIC_ADMIN_PRIVATE_KEY;
       if (!adminPk) throw new Error('Admin private key not configured');
       const address = await blockchainService.initialize(adminPk);
-      setUser({
+      const next = {
         email,
         address,
         role: 'admin',
         isConnected: true,
+      } as User;
+      setUser(prev => {
+        if (
+          prev.email === next.email &&
+          prev.address === next.address &&
+          prev.role === next.role &&
+          prev.isConnected === next.isConnected
+        ) {
+          return prev;
+        }
+        return next;
       });
     } catch (e) {
       throw e;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    user,
+    authenticate,
+    adminLogin,
+    logout,
+    exportPrivateKey,
+    isLoading,
+  }), [user, authenticate, adminLogin, logout, isLoading]);
 
   return (
-    <AuthContext.Provider value={{ user, authenticate, adminLogin, logout, exportPrivateKey, isLoading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

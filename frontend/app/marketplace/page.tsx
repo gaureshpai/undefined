@@ -18,32 +18,30 @@ export default function MarketplacePage() {
       try {
         await blockchainService.initialize();
         const properties = await blockchainService.getAllProperties();
-        const enriched: any[] = [];
-        for (const p of properties) {
+        const results = await Promise.all(properties.map(async (p) => {
           const details = await blockchainService.getFractionalNFTDetails(p.id);
-          if (details) {
-            let balance = 0;
-            if (user.address) {
-              const providerBalance = await new (await import("ethers")).Contract(
-                String(details.address).toLowerCase(),
-                (await import("@/lib/contract-config")).CONTRACT_CONFIG.fractionalNFT.abi,
-                (blockchainService as any).provider
-              ).balanceOf(user.address);
-              balance = Number(providerBalance);
-            }
-            enriched.push({
-              propertyId: p.id,
-              propertyName: p.name,
-              fractionalNFTAddress: details.address,
-              fractionalNFTName: details.name,
-              fractionalNFTSymbol: details.symbol,
-              totalSupply: details.totalSupply,
-              balance,
-              percentage: details.totalSupply ? (balance / details.totalSupply) * 100 : 0,
-            });
+          if (!details) return null;
+          let balance = 0;
+          if (user.address) {
+            const { Contract } = await import("ethers");
+            const { CONTRACT_CONFIG } = await import("@/lib/contract-config");
+            const provider = (blockchainService as any).provider;
+            const contract = new Contract(String(details.address).toLowerCase(), CONTRACT_CONFIG.fractionalNFT.abi, provider);
+            const providerBalance = await contract.balanceOf(user.address);
+            balance = Number(providerBalance);
           }
-        }
-        setItems(enriched);
+          return {
+            propertyId: p.id,
+            propertyName: p.name,
+            fractionalNFTAddress: details.address,
+            fractionalNFTName: details.name,
+            fractionalNFTSymbol: details.symbol,
+            totalSupply: details.totalSupply,
+            balance,
+            percentage: details.totalSupply ? (balance / details.totalSupply) * 100 : 0,
+          } as any;
+        }));
+        setItems(results.filter(Boolean) as any[]);
       } catch (e: any) {
         setError(e.message || "Failed to load marketplace");
       } finally {

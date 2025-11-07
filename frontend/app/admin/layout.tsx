@@ -2,11 +2,9 @@
 
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { LogOut, List } from "lucide-react"
 import AdminNav from "@/components/admin/admin-nav"
-import { blockchainService } from "@/lib/blockchain-service"
 
 export default function AdminLayout({
   children,
@@ -28,7 +26,7 @@ export default function AdminLayout({
 
   const handleLogout = async () => {
     await logout()
-    router.push("/")
+    router.push("/admin-login")
   }
 
   return (
