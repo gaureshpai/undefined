@@ -115,8 +115,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await magic.auth.loginWithEmailOTP({ email });
       
       // Get user info after successful login
-      if (typeof magic.user?.getMetadata === 'function') {
-        const metadata = await magic.user.getMetadata();
+      if (typeof magic.user?.getInfo === 'function') {
+        const metadata = await magic.user.getInfo();
         const address = await blockchainService.initializeWithMagic(magic);
         
         setUser({
@@ -162,8 +162,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await magic.auth.loginWithEmailOTP({ email });
       
       // Get user info after successful login
-      if (typeof magic.user?.getMetadata === 'function') {
-        const metadata = await magic.user.getMetadata();
+      if (typeof magic.user?.getInfo === 'function') {
+        const metadata = await magic.user.getInfo();
         const address = await blockchainService.initializeWithMagic(magic);
         
         setUser({
@@ -223,16 +223,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!magic) throw new Error('Magic SDK not initialized');
     try {
       // Export private key from Magic wallet
-      const privateKey = await magic.user.reveal();
-      
+      const privateKey = (await magic.user.revealEVMPrivateKey()) || "";
+
+      console.log(magic.user);
+
       // Store for future wallet logins
-      localStorage.setItem('wallet_private_key', privateKey);
+      localStorage.setItem("wallet_private_key", String(privateKey));
       if (user.email) {
-        localStorage.setItem('wallet_email', user.email);
+        localStorage.setItem("wallet_email", user.email);
       }
-      
-      setUser(prev => ({ ...prev, hasPrivateKey: true }));
-      return privateKey;
+
+      setUser((prev) => ({ ...prev, hasPrivateKey: true }));
+      return String(privateKey);
     } catch (error) {
       console.error('Failed to export private key:', error);
       throw error;

@@ -1,14 +1,20 @@
 // Smart contract configuration
-import PropertyRegistryABI from "../contracts/PropertyRegistry.json";
-import FractionalizerABI from "../contracts/Fractionalizer.json";
-import FractionalNFTABI from "../contracts/FractionalNFT.json";
+import PropertyRegistryArtifact from "../contracts/PropertyRegistry.json";
+import FractionalizerArtifact from "../contracts/Fractionalizer.json";
+import FractionalNFTArtifact from "../contracts/FractionalNFT.json";
 
 export const CONTRACT_CONFIG = {
-  // Update this address after deploying the contract
-  // You can get this from the deployment script output
-  address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x181b270c2E5Ee12a3E9E049b88b0426d2381ae56",
-  propertyRegistryAddress: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x181b270c2E5Ee12a3E9E049b88b0426d2381ae56",
-  mediatedTransferAddress: process.env.NEXT_PUBLIC_MEDIATED_TRANSFER_ADDRESS || "0x0000000000000000000000000000000000000000",
+  propertyRegistry: {
+    address: process.env.NEXT_PUBLIC_PROPERTY_REGISTRY_ADDRESS || "0x9Ebd104d447a8451A8308065597535431a105595",
+    abi: PropertyRegistryArtifact.abi,
+  },
+  fractionalizer: {
+    address: process.env.NEXT_PUBLIC_FRACTIONALIZER_ADDRESS || "0x689065448A5459A926332d1137E45799468c9875",
+    abi: FractionalizerArtifact.abi,
+  },
+  fractionalNFT: {
+    abi: FractionalNFTArtifact.abi,
+  },
   
   // Network configuration - matches hardhat.config.ts
   network: {

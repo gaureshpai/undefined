@@ -97,14 +97,9 @@ class BlockchainService {
       const provider = new ethers.BrowserProvider(magic.rpcProvider);
       this.provider = provider;
       this.signer = await provider.getSigner();
-      this.contract = new Contract(
-        CONTRACT_CONFIG.propertyRegistryAddress,
-        PropertyRegistryArtifact.abi,
-        this.signer
-      );
-      this.mediatedTransferContract = new Contract(
-        CONTRACT_CONFIG.mediatedTransferAddress,
-        MediatedTransferArtifact.abi,
+      this.propertyRegistryContract = new Contract(
+        CONTRACT_CONFIG.propertyRegistry.address,
+        CONTRACT_CONFIG.propertyRegistry.abi,
         this.signer
       );
       return await this.signer.getAddress();
