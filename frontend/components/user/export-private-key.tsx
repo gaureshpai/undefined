@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export function ExportPrivateKey() {
-  const { user, exportPrivateKey } = useAuth();
+  const { user } = useAuth();
   const [privateKey, setPrivateKey] = useState<string>('');
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState('');
@@ -18,8 +18,7 @@ export function ExportPrivateKey() {
     setIsExporting(true);
     setError('');
     try {
-      const key = await exportPrivateKey();
-      setPrivateKey(key);
+      throw new Error('Wallet operations are disabled');
     } catch (err: any) {
       setError(err.message || 'Failed to export private key');
     } finally {
@@ -49,10 +48,8 @@ export function ExportPrivateKey() {
     URL.revokeObjectURL(url);
   };
 
-  // Don't show if user already has private key exported
-  if (user.hasPrivateKey) {
-    return null;
-  }
+  // Hide component since wallet operations are disabled
+  return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

@@ -33,7 +33,7 @@ export default function PortfolioDashboard() {
     }
 
     const loadData = async () => {
-      if(user.address)
+      if (user.address)
         await loadOwnedFractionalNFTs(user.address);
     };
 
@@ -65,32 +65,6 @@ export default function PortfolioDashboard() {
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
       <div className="absolute inset-0 bg-linear-to-br from-gray-900 via-gray-800 to-black opacity-50"></div>
-      <div className="border-b border-gray-700 bg-gray-800/60 backdrop-blur-lg sticky top-0 z-50 shadow-md shadow-blue-500/10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-white font-bold">AssetChain</h1>
-              <p className="text-xs text-slate-400">Portfolio</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm text-slate-400">Connected</p>
-              <p className="text-xs text-slate-500 font-mono truncate max-w-xs">
-                {user.address?.slice(0, 6)}...{user.address?.slice(-4)}
-              </p>
-            </div>
-            <Button onClick={handleLogout} variant="outline" size="sm" className="border-gray-600 bg-transparent hover:bg-gray-700 hover:text-white transition-all">
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats Grid */}
@@ -145,9 +119,9 @@ export default function PortfolioDashboard() {
                         </div>
                       </div>
                     </CardHeader>
-import AssetTransferModal from "@/components/user/asset-transfer-modal";
+                    import AssetTransferModal from "@/components/user/asset-transfer-modal";
 
-// ... (imports)
+                    // ... (imports)
 
                     <CardContent>
                       <div className="space-y-3">

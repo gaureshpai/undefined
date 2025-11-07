@@ -5,25 +5,32 @@ import FractionalNFTArtifact from "../contracts/FractionalNFT.json";
 
 export const CONTRACT_CONFIG = {
   propertyRegistry: {
-    address: process.env.NEXT_PUBLIC_PROPERTY_REGISTRY_ADDRESS || "0x9Ebd104d447a8451A8308065597535431a105595",
+    // Support multiple env var names for convenience
+    address:
+      process.env.NEXT_PUBLIC_PROPERTY_REGISTRY_ADDRESS ||
+      (process.env as any).NEXT_PUBLIC_PROPERTYREG ||
+      "0x0000000000000000000000000000000000000000",
     abi: PropertyRegistryArtifact.abi,
   },
   fractionalizer: {
-    address: process.env.NEXT_PUBLIC_FRACTIONALIZER_ADDRESS || "0x689065448A5459A926332d1137E45799468c9875",
+    address:
+      process.env.NEXT_PUBLIC_FRACTIONALIZER_ADDRESS ||
+      (process.env as any).NEXT_PUBLIC_FRACTIONALIZER ||
+      "0x0000000000000000000000000000000000000000",
     abi: FractionalizerArtifact.abi,
   },
   fractionalNFT: {
     abi: FractionalNFTArtifact.abi,
   },
   
-  // Network configuration - matches hardhat.config.ts
+  // Network configuration - defaults; override with NEXT_PUBLIC_RPC_URL/CHAIN_ID
   network: {
     localhost: {
       url: "http://127.0.0.1:7545",
       chainId: 1337,
     },
     hardhat: {
-      url: "http://127.0.0.1:7545",
+      url: "http://127.0.0.1:8545",
       chainId: 31337,
     },
   },
@@ -31,9 +38,10 @@ export const CONTRACT_CONFIG = {
 };
 
 export function getRpcUrl(): string {
-  return CONTRACT_CONFIG.network[CONTRACT_CONFIG.currentNetwork].url;
+  return process.env.NEXT_PUBLIC_RPC_URL || CONTRACT_CONFIG.network[CONTRACT_CONFIG.currentNetwork].url;
 }
 
 export function getChainId(): number {
-  return CONTRACT_CONFIG.network[CONTRACT_CONFIG.currentNetwork].chainId;
+  const envId = process.env.NEXT_PUBLIC_CHAIN_ID ? Number(process.env.NEXT_PUBLIC_CHAIN_ID) : undefined;
+  return envId || CONTRACT_CONFIG.network[CONTRACT_CONFIG.currentNetwork].chainId;
 }

@@ -18,6 +18,18 @@ class BlockchainService {
   private fractionalizerContract: Contract | null = null;
   private signer: Signer | null = null;
 
+  private async assertContractCode(address: string, name: string) {
+    if (!this.provider) return;
+    try {
+      const code = await this.provider.getCode(address);
+      if (!code || code === '0x') {
+        throw new Error(`${name} not deployed at ${address} on ${getRpcUrl()}. Set NEXT_PUBLIC_*_ADDRESS to a valid Ganache deployment.`);
+      }
+    } catch (e) {
+      throw e;
+    }
+  }
+
   async connectMetaMask(): Promise<string> {
     if (typeof window.ethereum === 'undefined') {
       throw new Error("MetaMask is not installed!");
@@ -32,15 +44,17 @@ class BlockchainService {
       }
 
       this.propertyRegistryContract = new Contract(
-        CONTRACT_CONFIG.propertyRegistry.address,
+        CONTRACT_CONFIG.propertyRegistry.address.toLowerCase(),
         CONTRACT_CONFIG.propertyRegistry.abi,
         this.signer
       );
       this.fractionalizerContract = new Contract(
-        CONTRACT_CONFIG.fractionalizer.address,
+        CONTRACT_CONFIG.fractionalizer.address.toLowerCase(),
         CONTRACT_CONFIG.fractionalizer.abi,
         this.signer
       );
+      await this.assertContractCode(CONTRACT_CONFIG.propertyRegistry.address.toLowerCase(), 'PropertyRegistry');
+      await this.assertContractCode(CONTRACT_CONFIG.fractionalizer.address.toLowerCase(), 'Fractionalizer');
       return await this.signer.getAddress();
     } catch (error) {
       console.error("Failed to connect to MetaMask:", error);
@@ -62,28 +76,32 @@ class BlockchainService {
       if (currentSigner) {
         this.signer = currentSigner;
         this.propertyRegistryContract = new Contract(
-          CONTRACT_CONFIG.propertyRegistry.address,
+          CONTRACT_CONFIG.propertyRegistry.address.toLowerCase(),
           CONTRACT_CONFIG.propertyRegistry.abi,
           this.signer
         );
         this.fractionalizerContract = new Contract(
-          CONTRACT_CONFIG.fractionalizer.address,
+          CONTRACT_CONFIG.fractionalizer.address.toLowerCase(),
           CONTRACT_CONFIG.fractionalizer.abi,
           this.signer
         );
+        await this.assertContractCode(CONTRACT_CONFIG.propertyRegistry.address.toLowerCase(), 'PropertyRegistry');
+        await this.assertContractCode(CONTRACT_CONFIG.fractionalizer.address.toLowerCase(), 'Fractionalizer');
         return await this.signer.getAddress();
       } else {
         // Read-only mode if no signer is available
         this.propertyRegistryContract = new Contract(
-          CONTRACT_CONFIG.propertyRegistry.address,
+          CONTRACT_CONFIG.propertyRegistry.address.toLowerCase(),
           CONTRACT_CONFIG.propertyRegistry.abi,
           this.provider
         );
         this.fractionalizerContract = new Contract(
-          CONTRACT_CONFIG.fractionalizer.address,
+          CONTRACT_CONFIG.fractionalizer.address.toLowerCase(),
           CONTRACT_CONFIG.fractionalizer.abi,
           this.provider
         );
+        await this.assertContractCode(CONTRACT_CONFIG.propertyRegistry.address.toLowerCase(), 'PropertyRegistry');
+        await this.assertContractCode(CONTRACT_CONFIG.fractionalizer.address.toLowerCase(), 'Fractionalizer');
         return "";
       }
     } catch (error) {
@@ -233,7 +251,7 @@ class BlockchainService {
 
     try {
       const fractionalNFTContract = new Contract(
-        fractionalNFTAddress,
+        String(fractionalNFTAddress).toLowerCase(),
         CONTRACT_CONFIG.fractionalNFT.abi,
         this.signer
       );
@@ -275,7 +293,7 @@ class BlockchainService {
       if (fractionalNFTAddress === ethers.ZeroAddress) return null;
 
       const fractionalNFTContract = new Contract(
-        fractionalNFTAddress,
+        String(fractionalNFTAddress).toLowerCase(),
         CONTRACT_CONFIG.fractionalNFT.abi,
         this.provider
       );
@@ -303,11 +321,11 @@ class BlockchainService {
     for (const property of properties) {
       const fractionalNFTDetails = await this.getFractionalNFTDetails(property.id);
       if (fractionalNFTDetails) {
-        const fractionalNFTContract = new Contract(
-          fractionalNFTDetails.address,
-          CONTRACT_CONFIG.fractionalNFT.abi,
-          this.provider
-        );
+      const fractionalNFTContract = new Contract(
+        String(fractionalNFTDetails.address).toLowerCase(),
+        CONTRACT_CONFIG.fractionalNFT.abi,
+        this.provider
+      );
         const balance = await fractionalNFTContract.balanceOf(ownerAddress);
         if (balance > 0) {
           ownedFractionalNFTs.push({
