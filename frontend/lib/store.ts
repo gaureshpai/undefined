@@ -8,11 +8,13 @@ interface AssetStore {
   ownedFractionalNFTs: OwnedFractionalNFT[];
   isLoadingBlockchain: boolean;
   blockchainError: string | null;
+  hasLoaded: boolean;
   // Blockchain methods
   loadPropertiesFromBlockchain: (userAddress?: string) => Promise<void>;
   registerPropertyOnBlockchain: (params: { name: string; owner: string; partnershipAgreementUrl: string; maintenanceAgreementUrl: string; rentAgreementUrl: string; imageUrl: string; }) => Promise<void>;
   fractionalizeNFT: (propertyId: number, name: string, symbol: string, totalSupply: number) => Promise<void>;
   loadOwnedFractionalNFTs: (userAddress: string) => Promise<void>;
+  setHasLoaded: (hasLoaded: boolean) => void;
 }
 
 export const useAssetStore = create<AssetStore>((set: any, get: any) => ({
@@ -20,9 +22,13 @@ export const useAssetStore = create<AssetStore>((set: any, get: any) => ({
   ownedFractionalNFTs: [],
   isLoadingBlockchain: false,
   blockchainError: null,
+  hasLoaded: false,
+
+  setHasLoaded: (hasLoaded: boolean) => set({ hasLoaded }),
 
   // Load properties from blockchain
   loadPropertiesFromBlockchain: async (userAddress?: string) => {
+    if (get().hasLoaded) return;
     set({ isLoadingBlockchain: true, blockchainError: null });
     try {
       await blockchainService.initialize();

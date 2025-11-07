@@ -36,6 +36,10 @@ class RequestService {
     return this.requests.filter((req) => req.propertyId === propertyId);
   }
 
+  async getAllRequests(): Promise<Request[]> {
+    return this.requests;
+  }
+
   async getRequest(requestId: number): Promise<Request | undefined> {
     return this.requests.find((req) => req.id === requestId);
   }

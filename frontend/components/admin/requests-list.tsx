@@ -12,7 +12,7 @@ export default function RequestsList() {
   useEffect(() => {
     const fetchRequests = async () => {
       // In a real app, you'd fetch all requests here
-      const allRequests = await requestService.getRequestsForProperty(1); // Example for property 1
+      const allRequests = await requestService.getAllRequests();
       setRequests(allRequests);
     };
     fetchRequests();

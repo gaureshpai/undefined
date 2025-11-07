@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useAssetStore } from "@/lib/store";
+import { useState, useEffect } from "react";
+import { blockchainService } from "@/lib/blockchain-service";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Building2 } from "lucide-react";
@@ -10,9 +10,27 @@ import EnhancedRequestsList from "./enhanced-requests-list";
 // ... (imports)
 
 export default function BuildingsList() {
-  const { buildings } = useAssetStore();
+  const [buildings, setBuildings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
   const [showRequests, setShowRequests] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchBuildings = async () => {
+      try {
+        await blockchainService.initialize();
+        const allBuildings = await blockchainService.getAllProperties();
+        setBuildings(allBuildings);
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch buildings.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBuildings();
+  }, []);
 
   const handleFractionalizeClick = (propertyId: number) => {
     setSelectedPropertyId(propertyId);
@@ -21,6 +39,26 @@ export default function BuildingsList() {
   const handleShowRequestsClick = (propertyId: number) => {
     setShowRequests(showRequests === propertyId ? null : propertyId);
   };
+
+  if (isLoading) {
+    return (
+      <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+        <CardContent className="pt-12 text-center">
+          <p className="text-slate-400">Loading buildings...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+        <CardContent className="pt-12 text-center">
+          <p className="text-red-400">{error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (buildings.length === 0) {
     return (

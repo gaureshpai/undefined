@@ -3,7 +3,8 @@
 import type React from "react";
 
 import { useState } from "react";
-import { useAssetStore } from "@/lib/store";
+import { blockchainService } from "@/lib/blockchain-service";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,7 +26,6 @@ interface FileUpload {
 }
 
 export default function CreateBuildingForm() {
-  const { registerPropertyOnBlockchain } = useAssetStore();
   const [formData, setFormData] = useState({
     name: "",
     owner: "",
@@ -88,7 +88,7 @@ export default function CreateBuildingForm() {
       const rentAgreementUrl = await uploadFileToAzure(files.rentAgreement);
       const imageUrl = await uploadFileToAzure(files.imageFile);
 
-      await registerPropertyOnBlockchain({
+      await blockchainService.registerProperty({
         name: formData.name,
         owner: formData.owner,
         partnershipAgreementUrl,
@@ -110,12 +110,14 @@ export default function CreateBuildingForm() {
       });
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to register property on blockchain.");
-    } finally {
+    }
+    finally {
       setUploading(false);
     }
 
     setTimeout(() => setSuccess(false), 5000);
   };
+
 
   return (
     <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
