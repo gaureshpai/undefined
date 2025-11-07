@@ -3,6 +3,7 @@
 export interface AdminAuthResponse {
   success: boolean;
   error?: string;
+  email?: string; // Add email to the response
 }
 
 function parseAdminCredentials(): Map<string, string> | null {
@@ -31,6 +32,6 @@ export async function adminLoginAction(email: string, password: string): Promise
   if (!password) return { success: false, error: "Password is required" };
   // Simple env check: ADMIN_PASSWORD only
   const expected = process.env.ADMIN_PASSWORD || "";
-  if (password === expected) return { success: true };
+  if (password === expected) return { success: true, email }; // Return email on success
   return { success: false, error: "Invalid admin credentials" };
 }

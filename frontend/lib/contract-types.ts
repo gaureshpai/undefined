@@ -88,3 +88,24 @@ export interface OwnedFractionalNFT {
   balance: number;
   percentage: number;
 }
+
+export enum ListingStatus {
+  Active,
+  Cancelled,
+  Sold,
+}
+
+export interface Listing {
+  listingId: number;
+  propertyId: number;
+  fractionalNFTAddress: string;
+  seller: string;
+  amount: number;
+  pricePerShare: number;
+  status: ListingStatus;
+}
+
+export interface MarketplaceListing extends Listing {
+  propertyName: string;
+  imageUrl: string;
+}

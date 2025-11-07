@@ -434,6 +434,137 @@ class BlockchainService {
     }
   }
 
+  async approveFractionalNFTTransfer(
+    fractionalNFTAddress: string,
+    spender: string,
+    amount: number
+  ): Promise<ethers.ContractTransactionReceipt | null> {
+    if (!this.signer) {
+      throw new Error("Signer not available. Please connect MetaMask first.");
+    }
+    try {
+      const fractionalNFTContract = new Contract(
+        String(fractionalNFTAddress).toLowerCase(),
+        CONTRACT_CONFIG.fractionalNFT.abi,
+        this.signer
+      );
+      const tx = await fractionalNFTContract.approve(spender, amount);
+      const receipt = await tx.wait();
+      console.log("Approval successful:", receipt);
+      return receipt;
+    } catch (error: any) {
+      console.error("Failed to approve fractional NFT transfer:", error);
+      const reason = await this.getRevertReason(error);
+      throw new Error(reason || "Failed to approve fractional NFT transfer.");
+    }
+  }
+
+  async listFractionalNFTForSale(
+    propertyId: number,
+    fractionalNFTAddress: string,
+    amount: number,
+    pricePerShare: bigint
+  ): Promise<ethers.ContractTransactionReceipt | null> {
+    if (!this.propertyRegistryContract || !this.signer) {
+      await this.initialize();
+    }
+    try {
+      const tx = await this.propertyRegistryContract?.listFractionalNFTForSale(
+        propertyId,
+        fractionalNFTAddress,
+        amount,
+        pricePerShare
+      );
+      const receipt = await tx.wait();
+      console.log("NFT listed for sale:", receipt);
+      return receipt;
+    } catch (error: any) {
+      console.error("Failed to list NFT for sale:", error);
+      const reason = await this.getRevertReason(error);
+      throw new Error(reason || "Failed to list NFT for sale.");
+    }
+  }
+
+  async cancelListing(listingId: number): Promise<ethers.ContractTransactionReceipt | null> {
+    if (!this.propertyRegistryContract || !this.signer) {
+      await this.initialize();
+    }
+    try {
+      const tx = await this.propertyRegistryContract?.cancelListing(listingId);
+      const receipt = await tx.wait();
+      console.log("Listing cancelled:", receipt);
+      return receipt;
+    } catch (error: any) {
+      console.error("Failed to cancel listing:", error);
+      const reason = await this.getRevertReason(error);
+      throw new Error(reason || "Failed to cancel listing.");
+    }
+  }
+
+  async buyListedFractionalNFT(
+    listingId: number,
+    amountToBuy: number,
+    totalPrice: bigint
+  ): Promise<ethers.ContractTransactionReceipt | null> {
+    if (!this.propertyRegistryContract || !this.signer) {
+      await this.initialize();
+    }
+    try {
+      const tx = await this.propertyRegistryContract?.buyListedFractionalNFT(
+        listingId,
+        amountToBuy,
+        { value: totalPrice }
+      );
+      const receipt = await tx.wait();
+      console.log("NFT purchased:", receipt);
+      return receipt;
+    } catch (error: any) {
+      console.error("Failed to purchase NFT:", error);
+      const reason = await this.getRevertReason(error);
+      throw new Error(reason || "Failed to purchase NFT.");
+    }
+  }
+
+  async getListing(listingId: number): Promise<any | null> {
+    if (!this.propertyRegistryContract) await this.initialize();
+    try {
+      const listing = await this.propertyRegistryContract?.listings(listingId);
+      // Assuming the Listing struct returns its members in order
+      // struct Listing { uint256 listingId; uint256 propertyId; address fractionalNFTAddress; address seller; uint256 amount; uint256 pricePerShare; ListingStatus status; }
+      return {
+        listingId: Number(listing[0]),
+        propertyId: Number(listing[1]),
+        fractionalNFTAddress: listing[2],
+        seller: listing[3],
+        amount: Number(listing[4]),
+        pricePerShare: Number(listing[5]),
+        status: Number(listing[6]), // Convert to enum if needed
+      };
+    } catch (error) {
+      console.error(`Failed to get listing ${listingId}:`, error);
+      return null;
+    }
+  }
+
+  async getAllActiveListings(): Promise<any[]> {
+    if (!this.propertyRegistryContract) await this.initialize();
+    try {
+      const activeListings = await this.propertyRegistryContract?.getAllActiveListings();
+      return activeListings.map((listing: any) => ({
+        listingId: Number(listing[0]),
+        propertyId: Number(listing[1]),
+        fractionalNFTAddress: listing[2],
+        seller: listing[3],
+        amount: Number(listing[4]),
+        pricePerShare: Number(listing[5]),
+        status: Number(listing[6]),
+      }));
+    } catch (error) {
+      console.error("Failed to get all active listings:", error);
+      return [];
+    }
+  }
+
   private async getRevertReason(error: any): Promise<string | null> {
     if (error.reason) {
       return error.reason;

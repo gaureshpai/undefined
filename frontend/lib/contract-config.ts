@@ -26,7 +26,7 @@ export const CONTRACT_CONFIG = {
   // Network configuration - defaults; override with NEXT_PUBLIC_RPC_URL/CHAIN_ID
   network: {
     localhost: {
-      url: "https://4ecd215985c1.ngrok-free.app/",
+      url: "https://a3298686ee98.ngrok-free.app/",
       chainId: 1337,
     },
     hardhat: {

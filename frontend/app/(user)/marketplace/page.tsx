@@ -5,51 +5,77 @@ import { blockchainService } from "@/lib/blockchain-service";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import AssetTransferModal from "@/components/user/asset-transfer-modal";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { Listing, ListingStatus, MarketplaceListing } from "@/lib/contract-types";
+import { ethers } from "ethers";
 
 export default function MarketplacePage() {
   const { user } = useAuth();
-  const [items, setItems] = useState<any[]>([]);
+  const [listings, setListings] = useState<MarketplaceListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [amountToBuy, setAmountToBuy] = useState<{ [key: number]: number }>({});
+  const [isBuying, setIsBuying] = useState<{ [key: number]: boolean }>({});
+
+  const fetchListings = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await blockchainService.initialize();
+      const activeListings = await blockchainService.getAllActiveListings();
+      
+      const listingsWithPropertyDetails = await Promise.all(activeListings.map(async (listing: Listing) => {
+        const property = await blockchainService.getProperty(listing.propertyId);
+        return {
+          ...listing,
+          propertyName: property?.name || `Property ${listing.propertyId}`,
+          imageUrl: property?.imageUrl || "",
+        };
+      }));
+      setListings(listingsWithPropertyDetails);
+    } catch (e: any) {
+      console.error("Failed to load marketplace listings:", e);
+      setError(e.message || "Failed to load marketplace listings.");
+      toast.error(e.message || "Failed to load marketplace listings.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        await blockchainService.initialize();
-        const properties = await blockchainService.getAllProperties();
-        const results = await Promise.all(properties.map(async (p) => {
-          const details = await blockchainService.getFractionalNFTDetails(p.id);
-          if (!details) return null;
-          let balance = 0;
-          if (user.address) {
-            const { Contract } = await import("ethers");
-            const { CONTRACT_CONFIG } = await import("@/lib/contract-config");
-            const provider = (blockchainService as any).provider;
-            const contract = new Contract(String(details.address).toLowerCase(), CONTRACT_CONFIG.fractionalNFT.abi, provider);
-            const providerBalance = await contract.balanceOf(user.address);
-            balance = Number(providerBalance);
-          }
-          return {
-            propertyId: p.id,
-            propertyName: p.name,
-            fractionalNFTAddress: details.address,
-            fractionalNFTName: details.name,
-            fractionalNFTSymbol: details.symbol,
-            totalSupply: details.totalSupply,
-            balance,
-            percentage: details.totalSupply ? (balance / details.totalSupply) * 100 : 0,
-          } as any;
-        }));
-        setItems(results.filter(Boolean) as any[]);
-      } catch (e: any) {
-        setError(e.message || "Failed to load marketplace");
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [user.address]);
+    fetchListings();
+  }, []);
+
+  const handleBuy = async (listing: MarketplaceListing) => {
+    const buyAmount = amountToBuy[listing.listingId] || 0;
+    if (buyAmount <= 0 || buyAmount > listing.amount) {
+      toast.error(`Please enter a valid amount to buy (1-${listing.amount}).`);
+      return;
+    }
+
+    setIsBuying((prev) => ({ ...prev, [listing.listingId]: true }));
+    setError(null);
+
+    try {
+      const totalPrice = ethers.parseEther((buyAmount * Number(ethers.formatEther(listing.pricePerShare))).toString());
+      await blockchainService.buyListedFractionalNFT(
+        listing.listingId,
+        buyAmount,
+        totalPrice
+      );
+      toast.success(`Successfully purchased ${buyAmount} shares of ${listing.propertyName}!`);
+      setAmountToBuy((prev) => ({ ...prev, [listing.listingId]: 0 })); // Clear input
+      fetchListings(); // Re-fetch listings to update UI
+    } catch (err: any) {
+      console.error("Failed to buy NFT:", err);
+      setError(err.message || "Failed to buy NFT.");
+      toast.error(err.message || "Failed to buy NFT.");
+    } finally {
+      setIsBuying((prev) => ({ ...prev, [listing.listingId]: false }));
+    }
+  };
 
   if (loading) {
     return (
@@ -90,41 +116,68 @@ export default function MarketplacePage() {
           <p className="text-slate-400 text-sm">Browse fractional tokens of approved properties</p>
         </div>
 
-        {items.length === 0 ? (
+        {listings.length === 0 ? (
           <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
             <CardContent className="pt-12 text-center">
-              <p className="text-slate-400">No fractionalized assets yet.</p>
+              <p className="text-slate-400">No active listings found.</p>
             </CardContent>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {items.map((it, idx) => (
-              <Card key={idx} className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+            {listings.map((listing) => (
+              <Card key={listing.listingId} className="border-slate-700 bg-slate-800/60 backdrop-blur-lg">
                 <CardHeader>
-                  <CardTitle className="text-white">{it.propertyName}</CardTitle>
+                  <CardTitle className="text-white">{listing.propertyName}</CardTitle>
                   <CardDescription className="text-slate-400">
-                    {it.fractionalNFTName} ({it.fractionalNFTSymbol}) — Supply: {it.totalSupply}
+                    Listed by: {listing.seller}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-sm text-slate-300 font-mono break-all">
-                    Token: {it.fractionalNFTAddress}
-                  </div>
+                  <p className="text-sm text-slate-300">
+                    Amount: {listing.amount} shares
+                  </p>
+                  <p className="text-sm text-slate-300">
+                    Price per share: {ethers.formatEther(listing.pricePerShare)} ETH
+                  </p>
+                  <p className="text-sm text-slate-300 font-mono break-all mt-2">
+                    Fractional NFT: {listing.fractionalNFTAddress}
+                  </p>
+
                   {user.isConnected ? (
-                    it.balance > 0 ? (
-                      <div className="mt-4">
-                        <p className="text-xs text-slate-400 mb-2">You own {it.balance} ({it.percentage.toFixed(2)}%)</p>
-                        <AssetTransferModal ownedNFT={it} />
-                      </div>
-                    ) : (
-                      <div className="mt-4">
-                        <Button disabled variant="outline" className="border-slate-600 text-slate-400">
-                          Buy (coming soon)
+                    listing.seller.toLowerCase() !== user.address?.toLowerCase() ? (
+                      <div className="mt-4 space-y-2">
+                        <div className="grid grid-cols-3 items-center gap-4">
+                          <Label htmlFor={`amount-to-buy-${listing.listingId}`} className="text-right text-slate-300">
+                            Buy Amount
+                          </Label>
+                          <Input
+                            id={`amount-to-buy-${listing.listingId}`}
+                            type="number"
+                            value={amountToBuy[listing.listingId] || ""}
+                            onChange={(e) =>
+                              setAmountToBuy((prev) => ({
+                                ...prev,
+                                [listing.listingId]: Number(e.target.value),
+                              }))
+                            }
+                            className="col-span-2 bg-slate-700/50 border-slate-600 text-white"
+                            min="1"
+                            max={listing.amount}
+                          />
+                        </div>
+                        <Button
+                          onClick={() => handleBuy(listing)}
+                          disabled={isBuying[listing.listingId]}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          {isBuying[listing.listingId] ? "Buying..." : "Buy Shares"}
                         </Button>
                       </div>
+                    ) : (
+                      <p className="text-sm text-slate-500 mt-4">You own this listing.</p>
                     )
                   ) : (
-                    <p className="text-xs text-slate-500 mt-4">Connect/sign in to trade</p>
+                    <p className="text-xs text-slate-500 mt-4">Connect/sign in to buy</p>
                   )}
                 </CardContent>
               </Card>

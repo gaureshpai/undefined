@@ -67,13 +67,13 @@ export default function CreateBuildingForm() {
   const handleOwnerChange = (
     index: number,
     field: "address" | "percentage",
-    value: string
+    value: string | number
   ) => {
     const newOwners = [...owners];
     if (field === "percentage") {
       newOwners[index][field] = Number(value);
     } else {
-      newOwners[index][field] = value;
+      newOwners[index][field] = value as string;
     }
     setOwners(newOwners);
   };

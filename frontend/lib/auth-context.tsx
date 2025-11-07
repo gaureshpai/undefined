@@ -30,7 +30,7 @@ const createMagic = () => {
   if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_MAGIC_PUBLISHABLE_KEY) {
     return new Magic(process.env.NEXT_PUBLIC_MAGIC_PUBLISHABLE_KEY, {
       network: {
-        rpcUrl: "https://4ecd215985c1.ngrok-free.app/",
+        rpcUrl: "https://a3298686ee98.ngrok-free.app/",
         chainId: 1337,
       }
     });
@@ -99,6 +99,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkUser();
   }, [magic]);
 
+  useEffect(() => {
+    const checkAdminSession = async () => {
+      const adminEmail = localStorage.getItem('adminEmail');
+      if (adminEmail) {
+        setIsLoading(true);
+        try {
+          const adminPk = process.env.NEXT_PUBLIC_ADMIN_PRIVATE_KEY;
+          if (!adminPk) throw new Error('Admin private key not configured');
+          const address = await blockchainService.initialize(adminPk);
+          setUser({
+            email: adminEmail,
+            address,
+            role: 'admin',
+            isConnected: true,
+          });
+        } catch (error) {
+          console.error('Failed to auto-login admin:', error);
+          localStorage.removeItem('adminEmail'); // Clear invalid session
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    checkAdminSession();
+  }, []); // Run only once on mount
+
   const authenticate = useCallback(async (email: string) => {
     setIsLoading(true);
     try {
@@ -161,6 +187,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role: null,
       isConnected: false,
     });
+    localStorage.removeItem('adminEmail'); // Clear admin email from localStorage
   }, [magic]);
 
   const adminLogin = useCallback(async (email: string, password: string) => {
@@ -169,6 +196,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { adminLoginAction } = await import('@/app/actions/admin-auth');
       const res = await adminLoginAction(email, password);
       if (!res.success) throw new Error(res.error || 'Invalid admin credentials');
+      
+      // Store admin email in localStorage for persistence
+      localStorage.setItem('adminEmail', email);
+
       const adminPk = process.env.NEXT_PUBLIC_ADMIN_PRIVATE_KEY;
       if (!adminPk) throw new Error('Admin private key not configured');
       const address = await blockchainService.initialize(adminPk);
