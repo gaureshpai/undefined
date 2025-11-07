@@ -1,5 +1,5 @@
 import { ethers, Provider } from "ethers";
-import { contractConfig } from "./contract-config";
+import { CONTRACT_CONFIG } from "./contract-config";
 import MediatedTransfer from "../contracts/MediatedTransfer.json";
 import { blockchainService } from "./blockchain-service";
 
@@ -15,7 +15,7 @@ export interface MediatedTransferProposal {
   createdAt: string;
 }
 
-const mediatedTransferAddress = contractConfig.mediatedTransferAddress;
+const mediatedTransferAddress = CONTRACT_CONFIG.mediatedTransferAddress;
 const mediatedTransferABI = MediatedTransfer.abi;
 
 const getMediatedTransferContract = (signerOrProvider: ethers.Signer | Provider) => {

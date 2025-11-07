@@ -9,6 +9,7 @@ export interface BuildingAsset {
     partnershipAgreement?: string
     maintenanceAgreement?: string
     rentAgreement?: string
+    imageUrl?: string
   }
   createdAt: string
   status: "approved" | "pending" | "rejected"

@@ -1,7 +1,7 @@
 import { ethers, Contract, Signer, Wallet, BrowserProvider, JsonRpcProvider } from "ethers";
 import PropertyRegistryArtifact from "../contracts/PropertyRegistry.json";
 import MediatedTransferArtifact from "../contracts/MediatedTransfer.json";
-import { contractConfig, getRpcUrl } from "./contract-config";
+import { CONTRACT_CONFIG, getRpcUrl } from "./contract-config";
 import type {
   PropertyData,
   PropertyDetails,
@@ -46,12 +46,12 @@ class BlockchainService {
             }
 
             this.contract = new Contract(
-              contractConfig.propertyRegistryAddress,
+              CONTRACT_CONFIG.propertyRegistryAddress,
               PropertyRegistryArtifact.abi,
               this.signer
             );
             this.mediatedTransferContract = new Contract(
-              contractConfig.mediatedTransferAddress,
+              CONTRACT_CONFIG.mediatedTransferAddress,
               MediatedTransferArtifact.abi,
               this.signer
             );
@@ -72,12 +72,12 @@ class BlockchainService {
       if (privateKey) {
         this.signer = new Wallet(privateKey, this.provider);
         this.contract = new Contract(
-          contractConfig.propertyRegistryAddress,
+          CONTRACT_CONFIG.propertyRegistryAddress,
           PropertyRegistryArtifact.abi,
           this.signer
         );
         this.mediatedTransferContract = new Contract(
-          contractConfig.mediatedTransferAddress,
+          CONTRACT_CONFIG.mediatedTransferAddress,
           MediatedTransferArtifact.abi,
           this.signer
         );
@@ -85,12 +85,12 @@ class BlockchainService {
       } else if (!this.signer) { // Only re-initialize with provider if no signer is present
         // For read-only operations without a signer
         this.contract = new Contract(
-          contractConfig.propertyRegistryAddress,
+          CONTRACT_CONFIG.propertyRegistryAddress,
           PropertyRegistryArtifact.abi,
           this.provider
         );
         this.mediatedTransferContract = new Contract(
-          contractConfig.mediatedTransferAddress,
+          CONTRACT_CONFIG.mediatedTransferAddress,
           MediatedTransferArtifact.abi,
           this.provider
         );
