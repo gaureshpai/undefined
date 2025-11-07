@@ -1,13 +1,17 @@
-export const contractConfig = {
-  propertyRegistryAddress: process.env.NEXT_PUBLIC_PROPERTY_REGISTRY_ADDRESS || "0xD6eb4a4010a830c2cfc878354dBdbccfaf2a0D35",
-  mediatedTransferAddress: process.env.NEXT_PUBLIC_MEDIATED_TRANSFER_ADDRESS || "",
+// Smart contract configuration
+export const CONTRACT_CONFIG = {
+  // Update this address after deploying the contract
+  // You can get this from the deployment script output
+  address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0xb4210da958474c648F75d0E170521FCe947a6075",
+  
+  // Network configuration - matches hardhat.config.ts
   network: {
     localhost: {
       url: "http://127.0.0.1:7545",
       chainId: 1337,
     },
     hardhat: {
-      url: "http://127.0.0.1:8545",
+      url: "http://127.0.0.1:7545",
       chainId: 31337,
     },
   },
@@ -15,9 +19,9 @@ export const contractConfig = {
 };
 
 export function getRpcUrl(): string {
-  return contractConfig.network[contractConfig.currentNetwork].url;
+  return CONTRACT_CONFIG.network[CONTRACT_CONFIG.currentNetwork].url;
 }
 
 export function getChainId(): number {
-  return contractConfig.network[contractConfig.currentNetwork].chainId;
+  return CONTRACT_CONFIG.network[CONTRACT_CONFIG.currentNetwork].chainId;
 }

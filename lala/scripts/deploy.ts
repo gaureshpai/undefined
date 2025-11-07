@@ -16,12 +16,20 @@ async function main() {
   console.log("\nRegistering sample property...");
   
   const owners = [
-    "0xfbfC843230a08C4BBe8a38827aF18F3124D9aE33",
-    "0x79473C6c62ba58328a94a722A2B733433e4d699e",
+    "0x37f41DF9F35ea7a5EFdfBF5203fB8d4C442fc667",
+    "0x628E0e4e85662bE09089c37753d34c5FF4539a32",
   ];
   const shares = [60, 40]; // Percentages that sum to 100
 
-  const tx = await propertyRegistry.registerProperty("Green Villa", owners, shares);
+  const tx = await propertyRegistry.registerProperty(
+    "Green Villa",
+    owners,
+    shares,
+    "https://example.com/partnership-agreement.pdf", // Placeholder URL
+    "https://example.com/maintenance-agreement.pdf", // Placeholder URL
+    "https://example.com/rent-agreement.pdf", // Placeholder URL
+    "https://example.com/green-villa.jpg" // Placeholder URL
+  );
   await tx.wait();
 
   const ty = await propertyRegistry.getProperty(1);

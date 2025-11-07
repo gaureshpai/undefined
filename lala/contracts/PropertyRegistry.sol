@@ -16,6 +16,10 @@ contract PropertyRegistry {
         string name;
         Owner[] owners;
         bool exists;
+        string partnershipAgreementUrl;
+        string maintenanceAgreementUrl;
+        string rentAgreementUrl;
+        string imageUrl;
     }
 
     mapping(uint256 => Property) private properties;
@@ -45,10 +49,18 @@ contract PropertyRegistry {
     /// @param _name Human-readable name for the property.
     /// @param _owners Array of owner addresses.
     /// @param _shares Array of corresponding share percentages (whole numbers). Must sum to 100.
+    /// @param _partnershipAgreementUrl URL for the partnership agreement.
+    /// @param _maintenanceAgreementUrl URL for the maintenance agreement.
+    /// @param _rentAgreementUrl URL for the rent agreement.
+    /// @param _imageUrl URL for an image of the property.
     function registerProperty(
         string memory _name,
         address[] memory _owners,
-        uint256[] memory _shares
+        uint256[] memory _shares,
+        string memory _partnershipAgreementUrl,
+        string memory _maintenanceAgreementUrl,
+        string memory _rentAgreementUrl,
+        string memory _imageUrl
     ) public {
         require(bytes(_name).length > 0, "Name required");
         require(_owners.length == _shares.length, "Owners and shares mismatch");
@@ -66,6 +78,10 @@ contract PropertyRegistry {
         prop.id = propertyCount;
         prop.name = _name;
         prop.exists = true;
+        prop.partnershipAgreementUrl = _partnershipAgreementUrl;
+        prop.maintenanceAgreementUrl = _maintenanceAgreementUrl;
+        prop.rentAgreementUrl = _rentAgreementUrl;
+        prop.imageUrl = _imageUrl;
 
         // push owners
         for (uint256 i = 0; i < _owners.length; i++) {
@@ -165,14 +181,34 @@ contract PropertyRegistry {
     /// @return id Property id.
     /// @return name Property name.
     /// @return ownersCount Number of owners.
+    /// @return partnershipAgreementUrl URL for the partnership agreement.
+    /// @return maintenanceAgreementUrl URL for the maintenance agreement.
+    /// @return rentAgreementUrl URL for the rent agreement.
+    /// @return imageUrl URL for an image of the property.
     function getProperty(uint256 _propertyId)
         public
         view
         propertyExists(_propertyId)
-        returns (uint256 id, string memory name, uint256 ownersCount)
+        returns (
+            uint256 id,
+            string memory name,
+            uint256 ownersCount,
+            string memory partnershipAgreementUrl,
+            string memory maintenanceAgreementUrl,
+            string memory rentAgreementUrl,
+            string memory imageUrl
+        )
     {
         Property storage prop = properties[_propertyId];
-        return (prop.id, prop.name, prop.owners.length);
+        return (
+            prop.id,
+            prop.name,
+            prop.owners.length,
+            prop.partnershipAgreementUrl,
+            prop.maintenanceAgreementUrl,
+            prop.rentAgreementUrl,
+            prop.imageUrl
+        );
     }
 
     /* ========== INTERNAL / HELPERS ========== */
