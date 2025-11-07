@@ -1,0 +1,39 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-b236bcafd4b0d9357a400d6c954637b38abe79ef",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "userSourceNameMap": {
+    "contracts/PropertyRegistry.sol": "project/contracts/PropertyRegistry.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/PropertyRegistry.sol": {
+        "content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.0;\r\n\r\ncontract PropertyRegistry {\r\n    struct Owner {\r\n        address wallet;\r\n        uint256 percentage;\r\n    }\r\n\r\n    struct Property {\r\n        uint256 id;\r\n        string name;\r\n        Owner[] owners;\r\n    }\r\n\r\n    mapping(uint256 => Property) public properties;\r\n    uint256 public propertyCount;\r\n\r\n    function registerProperty(\r\n        string memory _name,\r\n        address[] memory _owners,\r\n        uint256[] memory _shares\r\n    ) public {\r\n        require(_owners.length == _shares.length, \"Owners and shares mismatch\");\r\n        propertyCount++;\r\n        Property storage newProp = properties[propertyCount];\r\n        newProp.id = propertyCount;\r\n        newProp.name = _name;\r\n        uint256 total = 0;\r\n        for (uint i = 0; i < _owners.length; i++) {\r\n            newProp.owners.push(Owner(_owners[i], _shares[i]));\r\n            total += _shares[i];\r\n        }\r\n        require(total == 100, \"Total share must be 100%\");\r\n    }\r\n}\r\n"
+      }
+    }
+  }
+}
