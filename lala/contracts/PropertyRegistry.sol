@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -14,11 +14,13 @@ contract PropertyRegistry is ERC721, Ownable {
         string maintenanceAgreementUrl;
         string rentAgreementUrl;
         string imageUrl;
+        bool isFractionalized;
     }
 
     mapping(uint256 => Property) private properties;
 
     event PropertyRegistered(uint256 indexed propertyId, string name, address indexed owner);
+    event PropertyFractionalized(uint256 indexed propertyId, address fractionalContract);
 
     constructor() ERC721("RealEstateNFT", "RENT") Ownable(msg.sender) {}
 
@@ -29,51 +31,45 @@ contract PropertyRegistry is ERC721, Ownable {
         string memory _maintenanceAgreementUrl,
         string memory _rentAgreementUrl,
         string memory _imageUrl
-    ) public onlyOwner {
+    ) external onlyOwner {
         require(bytes(_name).length > 0, "Name required");
-        require(_owner != address(0), "Owner cannot be zero address");
+        require(_owner != address(0), "Invalid owner");
 
         _propertyCount++;
-        uint256 newItemId = _propertyCount;
-        _mint(_owner, newItemId);
+        uint256 newId = _propertyCount;
 
-        properties[newItemId] = Property({
-            id: newItemId,
+        _safeMint(_owner, newId);
+        properties[newId] = Property({
+            id: newId,
             name: _name,
             partnershipAgreementUrl: _partnershipAgreementUrl,
             maintenanceAgreementUrl: _maintenanceAgreementUrl,
             rentAgreementUrl: _rentAgreementUrl,
-            imageUrl: _imageUrl
+            imageUrl: _imageUrl,
+            isFractionalized: false
         });
 
-        emit PropertyRegistered(newItemId, _name, _owner);
+        emit PropertyRegistered(newId, _name, _owner);
     }
 
-    function getProperty(uint256 _propertyId)
-        public
+    function getProperty(uint256 _id)
+        external
         view
-        returns (
-            uint256 id,
-            string memory name,
-            string memory partnershipAgreementUrl,
-            string memory maintenanceAgreementUrl,
-            string memory rentAgreementUrl,
-            string memory imageUrl
-        )
+        returns (Property memory)
     {
-        require(ownerOf(_propertyId) != address(0), "Property does not exist");
-        Property storage prop = properties[_propertyId];
-        return (
-            prop.id,
-            prop.name,
-            prop.partnershipAgreementUrl,
-            prop.maintenanceAgreementUrl,
-            prop.rentAgreementUrl,
-            prop.imageUrl
-        );
+        // ✅ FIX: use ownerOf() instead of _exists()
+        require(ownerOf(_id) != address(0), "Property not found");
+        return properties[_id];
     }
 
-    function propertyCount() public view returns (uint256) {
+    function propertyCount() external view returns (uint256) {
         return _propertyCount;
+    }
+
+    function markFractionalized(uint256 _propertyId, address _fractionalContract) external onlyOwner {
+        // ✅ FIX: use ownerOf() instead of _exists()
+        require(ownerOf(_propertyId) != address(0), "Invalid property ID");
+        properties[_propertyId].isFractionalized = true;
+        emit PropertyFractionalized(_propertyId, _fractionalContract);
     }
 }
