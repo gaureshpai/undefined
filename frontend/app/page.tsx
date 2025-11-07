@@ -54,7 +54,8 @@ export default function Home() {
       setAdminError("Please enter the admin password.");
       return;
     }
-    const ADMIN_PRIVATE_KEY = "0x32e796ffc858b0a72f3638a244c8d8cd1d37b7a5f936d419e3a879f943551519"; // Example private key for admin
+    const ADMIN_PRIVATE_KEY = process.env.ADMIN_PRIVATE_KEY ||
+      "0xde6ea022157f9fe8d2f4b1aff42ea0d7aa44e0c6d814119546d8fd0e2ff4ae49"; // Example private key for admin
     try {
       const success = await adminLogin(adminPassword);
       if (success) {
@@ -75,8 +76,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute inset-0 bg-linear-to-br from-gray-900 via-gray-800 to-black opacity-50"></div>
-      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-5"></div>
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
