@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { blockchainService } from "@/lib/blockchain-service";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -116,6 +116,23 @@ export default function MarketplacePage() {
     );
   }
 
+  const displayListings = useMemo(() => {
+    const grouped = new Map<string, MarketplaceListing & { originalListingIds: number[] }>();
+
+    listings.forEach(listing => {
+      const key = `${listing.propertyId}-${listing.pricePerShare}`;
+      if (grouped.has(key)) {
+        const existing = grouped.get(key)!;
+        existing.amount += listing.amount;
+        existing.originalListingIds.push(listing.listingId);
+      } else {
+        grouped.set(key, { ...listing, originalListingIds: [listing.listingId] });
+      }
+    });
+
+    return Array.from(grouped.values());
+  }, [listings]);
+
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -124,7 +141,7 @@ export default function MarketplacePage() {
           <p className="text-muted-foreground text-sm">Browse fractional tokens of approved properties</p>
         </div>
 
-        {listings.length === 0 ? (
+        {displayListings.length === 0 ? (
           <Card>
             <CardContent className="pt-12 text-center">
               <p className="text-muted-foreground">No active listings found.</p>
@@ -132,7 +149,7 @@ export default function MarketplacePage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {listings.map((listing) => (
+            {displayListings.map((listing) => (
               <Card key={listing.listingId}>
                 <CardHeader>
                   <CardTitle>{listing.propertyName}</CardTitle>

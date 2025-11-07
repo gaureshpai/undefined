@@ -33,7 +33,7 @@ export default function CreateBuildingForm() {
   const [owners, setOwners] = useState<{
     address: string;
     percentage: number;
-  }[]>([{ address: "", percentage: 0 }]);
+  }[]>([{ address: "", percentage: 100 }]);
   const [files, setFiles] = useState<FileUpload>({
     partnershipAgreement: null,
     maintenanceAgreement: null,
@@ -206,7 +206,7 @@ export default function CreateBuildingForm() {
           )}
 
           {/* Asset Information */}
-          <div className="space-y-4 p-4 rounded-lg border bg-muted/20">
+          <div className="space-y-4 p-4 rounded-lg border">
             <h3 className="font-semibold">Asset Information</h3>
 
             <div className="space-y-2">
@@ -226,11 +226,11 @@ export default function CreateBuildingForm() {
             </div>
 
             {/* Owners and Percentages */}
-            <div className="space-y-4 p-4 rounded-lg border bg-muted/20">
+            <div className="space-y-4 p-4 rounded-lg border">
               <h3 className="font-semibold">Owners and Percentages (Total must be 100%)</h3>
               {owners.map((owner, index) => (
                 <div key={index} className="flex items-end gap-2">
-                  <div className="flex-grow space-y-2">
+                  <div className="grow space-y-2">
                     <label className="text-sm font-medium text-foreground">
                       Owner {index + 1} Wallet Address *
                     </label>
@@ -282,7 +282,7 @@ export default function CreateBuildingForm() {
             </div>
 
             {/* Document Uploads */}
-          <div className="space-y-4 p-4 rounded-lg border bg-muted/20">
+          <div className="space-y-4 p-4 rounded-lg border">
             <h3 className="font-semibold">Required Documents</h3>
 
             {/* Partnership Agreement */}
@@ -359,7 +359,7 @@ export default function CreateBuildingForm() {
           </div>
 
           {/* Image Upload */}
-          <div className="space-y-4 p-4 rounded-lg border bg-muted/20">
+          <div className="space-y-4 p-4 rounded-lg border">
             <h3 className="font-semibold">Property Image</h3>
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">
