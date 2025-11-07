@@ -46,6 +46,11 @@ export default function AssetTransferModal({ ownedNFT }: { ownedNFT: any }) {
     }
   };
 
+  // Hide transfer if no signer available (wallet features disabled for users)
+  if (!blockchainService.getSigner()) {
+    return null;
+  }
+
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
       <DialogTrigger asChild>

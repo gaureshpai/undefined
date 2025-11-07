@@ -17,6 +17,20 @@ class BlockchainService {
   private propertyRegistryContract: Contract | null = null;
   private fractionalizerContract: Contract | null = null;
   private signer: Signer | null = null;
+  private initializedContracts = false;
+  private lastPrivateKey?: string;
+
+  private async assertContractCode(address: string, name: string) {
+    if (!this.provider) return;
+    try {
+      const code = await this.provider.getCode(address);
+      if (!code || code === '0x') {
+        throw new Error(`${name} not deployed at ${getRpcUrl()}. Set NEXT_PUBLIC_*_ADDRESS to a valid Ganache deployment.`);
+      }
+    } catch (e) {
+      throw e;
+    }
+  }
 
   async connectMetaMask(): Promise<string> {
     if (typeof window.ethereum === 'undefined') {
@@ -32,15 +46,18 @@ class BlockchainService {
       }
 
       this.propertyRegistryContract = new Contract(
-        CONTRACT_CONFIG.propertyRegistry.address,
+        CONTRACT_CONFIG.propertyRegistry.address.toLowerCase(),
         CONTRACT_CONFIG.propertyRegistry.abi,
         this.signer
       );
       this.fractionalizerContract = new Contract(
-        CONTRACT_CONFIG.fractionalizer.address,
+        CONTRACT_CONFIG.fractionalizer.address.toLowerCase(),
         CONTRACT_CONFIG.fractionalizer.abi,
         this.signer
       );
+      await this.assertContractCode(CONTRACT_CONFIG.propertyRegistry.address.toLowerCase(), 'PropertyRegistry');
+      await this.assertContractCode(CONTRACT_CONFIG.fractionalizer.address.toLowerCase(), 'Fractionalizer');
+      this.initializedContracts = true;
       return await this.signer.getAddress();
     } catch (error) {
       console.error("Failed to connect to MetaMask:", error);
@@ -50,11 +67,23 @@ class BlockchainService {
 
   async initialize(privateKey?: string): Promise<string> {
     try {
+      // Fast path: already initialized and no new privateKey context
+      if (
+        this.provider &&
+        this.propertyRegistryContract &&
+        this.fractionalizerContract &&
+        (!privateKey || this.lastPrivateKey === privateKey || this.signer)
+      ) {
+        const addr = await this.getCurrentAddress();
+        return addr || "";
+      }
+
       this.provider = new ethers.JsonRpcProvider(getRpcUrl());
       let currentSigner: Signer | null = null;
 
       if (privateKey) {
         currentSigner = new Wallet(privateKey, this.provider);
+        this.lastPrivateKey = privateKey;
       } else if (this.signer) { // Use existing signer from MetaMask if available
         currentSigner = this.signer;
       }
@@ -62,28 +91,38 @@ class BlockchainService {
       if (currentSigner) {
         this.signer = currentSigner;
         this.propertyRegistryContract = new Contract(
-          CONTRACT_CONFIG.propertyRegistry.address,
+          CONTRACT_CONFIG.propertyRegistry.address.toLowerCase(),
           CONTRACT_CONFIG.propertyRegistry.abi,
           this.signer
         );
         this.fractionalizerContract = new Contract(
-          CONTRACT_CONFIG.fractionalizer.address,
+          CONTRACT_CONFIG.fractionalizer.address.toLowerCase(),
           CONTRACT_CONFIG.fractionalizer.abi,
           this.signer
         );
+        if (!this.initializedContracts) {
+          await this.assertContractCode(CONTRACT_CONFIG.propertyRegistry.address.toLowerCase(), 'PropertyRegistry');
+          await this.assertContractCode(CONTRACT_CONFIG.fractionalizer.address.toLowerCase(), 'Fractionalizer');
+          this.initializedContracts = true;
+        }
         return await this.signer.getAddress();
       } else {
         // Read-only mode if no signer is available
         this.propertyRegistryContract = new Contract(
-          CONTRACT_CONFIG.propertyRegistry.address,
+          CONTRACT_CONFIG.propertyRegistry.address.toLowerCase(),
           CONTRACT_CONFIG.propertyRegistry.abi,
           this.provider
         );
         this.fractionalizerContract = new Contract(
-          CONTRACT_CONFIG.fractionalizer.address,
+          CONTRACT_CONFIG.fractionalizer.address.toLowerCase(),
           CONTRACT_CONFIG.fractionalizer.abi,
           this.provider
         );
+        if (!this.initializedContracts) {
+          await this.assertContractCode(CONTRACT_CONFIG.propertyRegistry.address.toLowerCase(), 'PropertyRegistry');
+          await this.assertContractCode(CONTRACT_CONFIG.fractionalizer.address.toLowerCase(), 'Fractionalizer');
+          this.initializedContracts = true;
+        }
         return "";
       }
     } catch (error) {
@@ -102,6 +141,7 @@ class BlockchainService {
         CONTRACT_CONFIG.propertyRegistry.abi,
         this.signer
       );
+      this.initializedContracts = true;
       return await this.signer.getAddress();
     } catch (error) {
       console.error("Failed to initialize blockchain service with Magic:", error);
@@ -145,23 +185,18 @@ class BlockchainService {
 
   async getAllProperties(): Promise<PropertyDetails[]> {
     const count = await this.getPropertyCount();
-    const properties: PropertyDetails[] = [];
-
-    for (let i = 1; i <= count; i++) {
-      const property = await this.getProperty(i);
-      if (property) {
-        properties.push({
-          id: property.id,
-          name: property.name,
-          owner: property.owner,
-          partnershipAgreementUrl: property.partnershipAgreementUrl,
-          maintenanceAgreementUrl: property.maintenanceAgreementUrl,
-          rentAgreementUrl: property.rentAgreementUrl,
-          imageUrl: property.imageUrl,
-        });
-      }
-    }
-    return properties;
+    if (count === 0) return [];
+    const ids = Array.from({ length: count }, (_, i) => i + 1);
+    const results = await Promise.all(ids.map((i) => this.getProperty(i)));
+    return (results.filter(Boolean) as PropertyData[]).map((property) => ({
+      id: property.id,
+      name: property.name,
+      owner: property.owner,
+      partnershipAgreementUrl: property.partnershipAgreementUrl,
+      maintenanceAgreementUrl: property.maintenanceAgreementUrl,
+      rentAgreementUrl: property.rentAgreementUrl,
+      imageUrl: property.imageUrl,
+    }));
   }
 
   async registerProperty(params: RegisterPropertyParams): Promise<ethers.ContractTransactionReceipt | null> {
@@ -233,7 +268,7 @@ class BlockchainService {
 
     try {
       const fractionalNFTContract = new Contract(
-        fractionalNFTAddress,
+        String(fractionalNFTAddress).toLowerCase(),
         CONTRACT_CONFIG.fractionalNFT.abi,
         this.signer
       );
@@ -275,7 +310,7 @@ class BlockchainService {
       if (fractionalNFTAddress === ethers.ZeroAddress) return null;
 
       const fractionalNFTContract = new Contract(
-        fractionalNFTAddress,
+        String(fractionalNFTAddress).toLowerCase(),
         CONTRACT_CONFIG.fractionalNFT.abi,
         this.provider
       );
@@ -298,32 +333,33 @@ class BlockchainService {
 
   async getOwnedFractionalNFTs(ownerAddress: string): Promise<any[]> {
     const properties = await this.getAllProperties();
-    const ownedFractionalNFTs: any[] = [];
+    if (properties.length === 0) return [];
 
-    for (const property of properties) {
-      const fractionalNFTDetails = await this.getFractionalNFTDetails(property.id);
-      if (fractionalNFTDetails) {
-        const fractionalNFTContract = new Contract(
-          fractionalNFTDetails.address,
-          CONTRACT_CONFIG.fractionalNFT.abi,
-          this.provider
-        );
-        const balance = await fractionalNFTContract.balanceOf(ownerAddress);
-        if (balance > 0) {
-          ownedFractionalNFTs.push({
-            propertyId: property.id,
-            propertyName: property.name,
-            fractionalNFTAddress: fractionalNFTDetails.address,
-            fractionalNFTName: fractionalNFTDetails.name,
-            fractionalNFTSymbol: fractionalNFTDetails.symbol,
-            totalSupply: fractionalNFTDetails.totalSupply,
-            balance: Number(balance),
-            percentage: (Number(balance) / fractionalNFTDetails.totalSupply) * 100,
-          });
-        }
-      }
-    }
-    return ownedFractionalNFTs;
+    const detailsList = await Promise.all(properties.map((p) => this.getFractionalNFTDetails(p.id)));
+
+    const results = await Promise.all(detailsList.map(async (details, idx) => {
+      if (!details) return null;
+      const fractionalNFTContract = new Contract(
+        String(details.address).toLowerCase(),
+        CONTRACT_CONFIG.fractionalNFT.abi,
+        this.provider
+      );
+      const balance = await fractionalNFTContract.balanceOf(ownerAddress);
+      if (Number(balance) <= 0) return null;
+      const property = properties[idx]!;
+      return {
+        propertyId: property.id,
+        propertyName: property.name,
+        fractionalNFTAddress: details.address,
+        fractionalNFTName: details.name,
+        fractionalNFTSymbol: details.symbol,
+        totalSupply: details.totalSupply,
+        balance: Number(balance),
+        percentage: (Number(balance) / details.totalSupply) * 100,
+      };
+    }));
+
+    return results.filter(Boolean) as any[];
   }
 
   onPropertyRegistered(callback: (propertyId: bigint, name: string, owner: string) => void): void {

@@ -2,10 +2,8 @@
 
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { LogOut, List } from "lucide-react"
-import RequestNotifications from "@/components/admin/request-notifications"
 import AdminNav from "@/components/admin/admin-nav"
 
 export default function AdminLayout({
@@ -16,24 +14,23 @@ export default function AdminLayout({
   const router = useRouter()
   const { user, logout, isLoading } = useAuth()
 
-  // Redirect non-admin users
-  useEffect(() => {
-    if (!isLoading && (!user.isConnected || user.role !== "admin")) {
-      router.push("/")
-    }
-  }, [user, router, isLoading])
-
-  if (!user.isConnected || user.role !== "admin") return null
+  // Initialize signer for admin using env private key (client-side public env)
+  // Simple guard: show minimal message instead of redirecting
+  if (!user.isConnected || user.role !== "admin") {
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-300 flex items-center justify-center">
+        <div>Admin access required</div>
+      </div>
+    )
+  }
 
   const handleLogout = async () => {
     await logout()
-    router.push("/")
+    router.push("/admin-login")
   }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
-      <RequestNotifications />
-
       {/* Header */}
       <header className="border-b border-slate-700 bg-slate-800/50 backdrop-blur-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
