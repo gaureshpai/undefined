@@ -12,8 +12,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FileCheck, AlertCircle } from "lucide-react";
+import {toast} from "sonner";
 
 export default function FractionalizeNftForm({ propertyId }: { propertyId: number }) {
   const { fractionalizeNFT } = useAssetStore();
@@ -69,9 +70,9 @@ export default function FractionalizeNftForm({ propertyId }: { propertyId: numbe
   };
 
   return (
-    <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg mt-6">
+    <Card className="mt-6">
       <CardHeader>
-        <CardTitle className="text-white">Fractionalize NFT</CardTitle>
+        <CardTitle>Fractionalize NFT</CardTitle>
         <CardDescription>
           Create fractional tokens for this property.
         </CardDescription>
@@ -79,26 +80,26 @@ export default function FractionalizeNftForm({ propertyId }: { propertyId: numbe
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {success && (
-            <Alert className="border-green-500/50 bg-green-500/10">
-              <FileCheck className="h-4 w-4 text-green-500" />
-              <AlertDescription className="text-green-400">
+            <Alert variant="default">
+              <FileCheck className="h-4 w-4" />
+              <AlertDescription>
                 NFT fractionalized successfully!
               </AlertDescription>
             </Alert>
           )}
 
           {errorMsg && (
-            <Alert className="border-red-500/50 bg-red-500/10">
-              <AlertCircle className="h-4 w-4 text-red-500" />
-              <AlertDescription className="text-red-400">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
                 {errorMsg}
               </AlertDescription>
             </Alert>
           )}
 
-          <div className="space-y-4 bg-slate-700/30 p-4 rounded-lg border border-slate-600">
+          <div className="space-y-4 p-4 rounded-lg border bg-muted/20">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-200">
+              <label className="text-sm font-medium text-foreground">
                 Token Name *
               </label>
               <Input
@@ -107,13 +108,12 @@ export default function FractionalizeNftForm({ propertyId }: { propertyId: numbe
                 placeholder="e.g., Downtown Office Fractions"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="bg-slate-700/50 border-slate-600 text-white"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-200">
+              <label className="text-sm font-medium text-foreground">
                 Token Symbol *
               </label>
               <Input
@@ -122,13 +122,12 @@ export default function FractionalizeNftForm({ propertyId }: { propertyId: numbe
                 placeholder="e.g., DOF"
                 value={formData.symbol}
                 onChange={handleInputChange}
-                className="bg-slate-700/50 border-slate-600 text-white"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-200">
+              <label className="text-sm font-medium text-foreground">
                 Total Supply *
               </label>
               <Input
@@ -137,7 +136,6 @@ export default function FractionalizeNftForm({ propertyId }: { propertyId: numbe
                 placeholder="e.g., 10000"
                 value={formData.totalSupply}
                 onChange={handleInputChange}
-                className="bg-slate-700/50 border-slate-600 text-white"
                 required
               />
             </div>
@@ -145,7 +143,7 @@ export default function FractionalizeNftForm({ propertyId }: { propertyId: numbe
 
           <Button
             type="submit"
-            className="w-full bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold h-12 rounded-lg transition-all"
+            className="w-full h-12 rounded-lg"
             disabled={isLoading}
           >
             {isLoading ? "Fractionalizing..." : "Fractionalize NFT"}

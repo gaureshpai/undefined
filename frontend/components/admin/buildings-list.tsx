@@ -3,6 +3,7 @@ import { blockchainService } from "@/lib/blockchain-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function BuildingsList() {
   const [buildings, setBuildings] = useState<any[]>([]);
@@ -63,28 +64,28 @@ export default function BuildingsList() {
     return (
       <div className="space-y-4">
         {[...Array(3)].map((_, i) => (
-          <Card key={i} className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+          <Card key={i}>
             <CardHeader>
-              <CardTitle className="text-white">
+              <CardTitle>
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded bg-slate-700/60" />
-                  <div className="h-5 w-48 rounded bg-slate-700/60" />
+                  <Skeleton className="w-5 h-5 rounded" />
+                  <Skeleton className="h-5 w-48 rounded" />
                 </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <div className="h-3 w-20 rounded bg-slate-700/60" />
-                  <div className="h-4 w-64 rounded bg-slate-700/60" />
+                  <Skeleton className="h-3 w-20 rounded" />
+                  <Skeleton className="h-4 w-64 rounded" />
                 </div>
                 <div className="space-y-2">
-                  <div className="h-3 w-24 rounded bg-slate-700/60" />
-                  <div className="h-4 w-40 rounded bg-slate-700/60" />
+                  <Skeleton className="h-3 w-24 rounded" />
+                  <Skeleton className="h-4 w-40 rounded" />
                 </div>
                 <div className="space-y-2">
-                  <div className="h-3 w-16 rounded bg-slate-700/60" />
-                  <div className="h-4 w-32 rounded bg-slate-700/60" />
+                  <Skeleton className="h-3 w-16 rounded" />
+                  <Skeleton className="h-4 w-32 rounded" />
                 </div>
               </div>
             </CardContent>
@@ -96,9 +97,9 @@ export default function BuildingsList() {
 
   if (error) {
     return (
-      <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+      <Card>
         <CardContent className="pt-12 text-center">
-          <p className="text-red-400">{error}</p>
+          <p className="text-destructive">{error}</p>
         </CardContent>
       </Card>
     );
@@ -106,10 +107,10 @@ export default function BuildingsList() {
 
   if (buildings.length === 0) {
     return (
-      <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+      <Card>
         <CardContent className="pt-12 text-center">
-          <Building2 className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-          <p className="text-slate-400">No buildings found</p>
+          <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">No buildings found</p>
         </CardContent>
       </Card>
     );
@@ -118,18 +119,18 @@ export default function BuildingsList() {
   return (
     <div className="space-y-4">
       {buildings.map((b: any) => (
-        <Card key={b.id} className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+        <Card key={b.id}>
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-amber-500" />
-              {b.name} <span className="text-xs text-slate-500">(ID: {b.id})</span>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-primary" />
+              {b.name} <span className="text-xs text-muted-foreground">(ID: {b.id})</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <p className="text-xs text-slate-500 mb-1">Owner</p>
-                <p className="text-sm font-mono text-slate-300 break-all">{b.owner}</p>
+                <p className="text-xs text-muted-foreground mb-1">Owner</p>
+                <p className="text-sm font-mono text-foreground break-all">{b.owner}</p>
               </div>
             </div>
           </CardContent>
@@ -137,7 +138,7 @@ export default function BuildingsList() {
       ))}
 
       <div className="pt-2">
-        <Button onClick={handleLoadMore} variant="outline" className="border-slate-700 text-slate-200">
+        <Button onClick={handleLoadMore} variant="outline">
           Load more
         </Button>
       </div>

@@ -18,7 +18,7 @@ export default function AdminLayout({
   // Simple guard: show minimal message instead of redirecting
   if (!user.isConnected || user.role !== "admin") {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-300 flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div>Admin access required</div>
       </div>
     )
@@ -30,17 +30,17 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-slate-700 bg-slate-800/50 backdrop-blur-lg sticky top-0 z-50">
+      <header className="border-b border-border bg-background backdrop-blur sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-linear-to-br from-amber-600 to-orange-600 flex items-center justify-center">
-              <List className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+              <List className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-white font-bold">AssetChain Admin</h1>
-              <p className="text-xs text-slate-400">Asset Management System</p>
+              <h1 className="text-foreground font-bold">AssetChain Admin</h1>
+              <p className="text-xs text-muted-foreground">Asset Management System</p>
             </div>
           </div>
 
@@ -49,7 +49,7 @@ export default function AdminLayout({
           <Button
             onClick={handleLogout}
             size="sm"
-            className="border-slate-600 bg-white hover:bg-white/40 text-black"
+            variant="outline"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Logout

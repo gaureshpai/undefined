@@ -24,7 +24,7 @@ export default function AdminNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="flex items-center gap-1 bg-slate-800/70 border border-slate-700/60 rounded-xl px-3 py-2 backdrop-blur-md shadow-sm">
+    <nav className="flex items-center gap-1 bg-card border border-border rounded-xl px-3 py-2 backdrop-blur shadow-sm">
       {links.map(({ href, text, icon: Icon }) => {
         const isActive = pathname === href
         return (
@@ -33,9 +33,9 @@ export default function AdminNav() {
             href={href}
             className={cn(
               buttonVariants({ variant: "ghost", size: "sm" }),
-              "flex items-center gap-2 text-sm text-slate-300 transition-all duration-200",
-              "hover:text-amber-400 hover:bg-slate-700/40",
-              isActive && "bg-amber-600/20 text-amber-400 border border-amber-600/40"
+              "flex items-center gap-2 text-sm text-muted-foreground transition-all duration-200",
+              "hover:text-foreground hover:bg-accent",
+              isActive && "bg-primary/20 text-primary border border-primary/40"
             )}
           >
             <Icon className="w-4 h-4" />

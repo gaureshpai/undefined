@@ -60,31 +60,31 @@ export default function TransactionsPage() {
   return (
     <div className="space-y-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white">Transaction History</h2>
-        <p className="text-slate-400 text-sm">Recent events from PropertyRegistry and Fractionalizer</p>
+        <h2 className="text-2xl font-bold text-foreground">Transaction History</h2>
+        <p className="text-muted-foreground text-sm">Recent events from PropertyRegistry and Fractionalizer</p>
       </div>
 
       {error ? (
-        <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+        <Card>
           <CardContent className="pt-12 text-center">
-            <p className="text-red-400">{error}</p>
+            <p className="text-destructive">{error}</p>
           </CardContent>
         </Card>
       ) : logs.length === 0 ? (
-        <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+        <Card>
           <CardContent className="pt-12 text-center">
-            <p className="text-slate-400">No recent events</p>
+            <p className="text-muted-foreground">No recent events</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
           {logs.map((l, i) => (
-            <Card key={i} className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+            <Card key={i}>
               <CardHeader>
-                <CardTitle className="text-white">{l.event}</CardTitle>
+                <CardTitle>{l.event}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-xs text-slate-400 font-mono break-all">
+                <div className="text-xs text-muted-foreground font-mono break-all">
                   <div>Block: {l.blockNumber}</div>
                   <div>Address: {l.address}</div>
                   <div>Tx: {l.txHash}</div>

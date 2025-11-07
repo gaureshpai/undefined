@@ -37,27 +37,27 @@ export default function RequestsAnalytics() {
   const rejectedRequests = requests.filter((r) => r.status === PropertyRequestStatus.Rejected).length;
 
   return (
-    <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg mt-6">
+    <Card className="mt-6">
       <CardHeader>
-        <CardTitle className="text-white">Requests Analytics</CardTitle>
+        <CardTitle>Requests Analytics</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <p className="text-xs text-slate-500 mb-1">Total Requests</p>
-            <p className="text-2xl font-bold text-white">{totalRequests}</p>
+            <p className="text-xs text-muted-foreground mb-1">Total Requests</p>
+            <p className="text-2xl font-bold text-foreground">{totalRequests}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-500 mb-1">Pending</p>
-            <p className="text-2xl font-bold text-yellow-400">{pendingRequests}</p>
+            <p className="text-xs text-muted-foreground mb-1">Pending</p>
+            <p className="text-2xl font-bold text-yellow-500">{pendingRequests}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-500 mb-1">Approved</p>
-            <p className="text-2xl font-bold text-green-400">{approvedRequests}</p>
+            <p className="text-xs text-muted-foreground mb-1">Approved</p>
+            <p className="text-2xl font-bold text-green-500">{approvedRequests}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-500 mb-1">Rejected</p>
-            <p className="text-2xl font-bold text-red-400">{rejectedRequests}</p>
+            <p className="text-xs text-muted-foreground mb-1">Rejected</p>
+            <p className="text-2xl font-bold text-destructive">{rejectedRequests}</p>
           </div>
         </div>
       </CardContent>

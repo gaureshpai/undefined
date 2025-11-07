@@ -45,6 +45,23 @@ export default function MarketplacePage() {
       setLoading(false);
     }
   };
+ 
+  const displayListings = useMemo(() => {
+    const grouped = new Map<string, MarketplaceListing & { originalListingIds: number[] }>();
+
+    listings.forEach(listing => {
+      const key = `${listing.propertyId}-${listing.pricePerShare}`;
+      if (grouped.has(key)) {
+        const existing = grouped.get(key)!;
+        existing.amount += listing.amount;
+        existing.originalListingIds.push(listing.listingId);
+      } else {
+        grouped.set(key, { ...listing, originalListingIds: [listing.listingId] });
+      }
+    });
+
+    return Array.from(grouped.values());
+  }, [listings]);
 
   useEffect(() => {
     fetchListings();
@@ -115,23 +132,6 @@ export default function MarketplacePage() {
       </div>
     );
   }
-
-  const displayListings = useMemo(() => {
-    const grouped = new Map<string, MarketplaceListing & { originalListingIds: number[] }>();
-
-    listings.forEach(listing => {
-      const key = `${listing.propertyId}-${listing.pricePerShare}`;
-      if (grouped.has(key)) {
-        const existing = grouped.get(key)!;
-        existing.amount += listing.amount;
-        existing.originalListingIds.push(listing.listingId);
-      } else {
-        grouped.set(key, { ...listing, originalListingIds: [listing.listingId] });
-      }
-    });
-
-    return Array.from(grouped.values());
-  }, [listings]);
 
   return (
     <div className="min-h-screen">
