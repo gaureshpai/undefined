@@ -8,13 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { LogOut, SquarePlus, List, CheckCircle2 } from "lucide-react"
 import CreateBuildingForm from "@/components/admin/create-building-form"
 import BuildingsList from "@/components/admin/buildings-list"
-import RequestsList from "@/components/admin/requests-list"
-import { useAssetStore } from "@/lib/store"
+import EnhancedRequestsList from "@/components/admin/enhanced-requests-list"
+
+import { useAssetStore } from "@/lib/store";
 
 export default function AdminDashboard() {
   const router = useRouter()
   const { user, logout } = useAuth()
-  const { loadPropertiesFromBlockchain } = useAssetStore()
+  const { loadPropertiesFromBlockchain, loadMediatedTransferProposals } = useAssetStore()
   const [activeTab, setActiveTab] = useState("buildings")
 
   useEffect(() => {
@@ -22,12 +23,13 @@ export default function AdminDashboard() {
       if (user.role === "admin") {
         console.log("Admin user connected, loading all properties.");
         loadPropertiesFromBlockchain(); // Admin sees all properties
+        loadMediatedTransferProposals(); // Load mediated transfer proposals
       } else {
         console.log("Loading properties for user address:", user.address);
         loadPropertiesFromBlockchain(user.address); // Regular user sees only their properties
       }
     }
-  }, [user, loadPropertiesFromBlockchain]);
+  }, [user, loadPropertiesFromBlockchain, loadMediatedTransferProposals]);
 
   useEffect(() => {
     if (!user.isConnected || user.role !== "admin") {
@@ -81,6 +83,7 @@ export default function AdminDashboard() {
               <CheckCircle2 className="w-4 h-4" />
               Requests
             </TabsTrigger>
+            
           </TabsList>
 
           {/* Create Building Tab */}
@@ -107,8 +110,10 @@ export default function AdminDashboard() {
               <h2 className="text-2xl font-bold text-white">Pending Requests</h2>
               <p className="text-slate-400 text-sm">Review and approve/reject tokenization requests</p>
             </div>
-            <RequestsList />
+            <EnhancedRequestsList />
           </TabsContent>
+
+          
         </Tabs>
       </div>
     </div>

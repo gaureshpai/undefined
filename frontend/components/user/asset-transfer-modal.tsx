@@ -18,6 +18,8 @@ export default function AssetTransferModal({ isOpen, onClose, asset }: AssetTran
   const [newOwnerAddress, setNewOwnerAddress] = useState("");
   const [isTransferring, setIsTransferring] = useState(false);
   const { transferFullOwnership, registerPropertyOnBlockchain } = useAssetStore(); // Assuming transferFullOwnership is in useAssetStore
+  const [isInitiating, setIsInitiating] = useState(false);
+  const { initiateTransferRequest } = useAssetStore();
   const { user } = useAuth();
 
   if (!asset) return null;
@@ -50,10 +52,32 @@ export default function AssetTransferModal({ isOpen, onClose, asset }: AssetTran
     }
   };
 
-  // Placeholder for multi-owner transfer logic
-  const handleMultiOwnerTransfer = () => {
-    toast.info("Multi-owner transfer logic not yet implemented.");
-    // This would involve initiating a request, getting approvals, and then admin finalization
+
+  const handleInitiateTransfer = async () => {
+    if (!newOwnerAddress) {
+      toast.error("Please enter a new owner address.");
+      return;
+    }
+    if (!user.address) {
+      toast.error("User address not found. Please log in.");
+      return;
+    }
+
+    setIsInitiating(true);
+    try {
+      await initiateTransferRequest({
+        propertyId: parseInt(asset.id.replace("bld-", "")),
+        to: newOwnerAddress,
+        from: user.address,
+      });
+      toast.success("Ownership transfer initiated! It now requires approval from other owners and the admin.");
+      onClose();
+    } catch (error: any) {
+      console.error("Failed to initiate ownership transfer:", error);
+      toast.error(`Initiation failed: ${error.message || "Unknown error"}`);
+    } finally {
+      setIsInitiating(false);
+    }
   };
 
   const isSingleOwner = asset.fractionalOwnership?.length === 1 && asset.fractionalOwnership[0].address.toLowerCase() === user.address?.toLowerCase();
@@ -95,6 +119,18 @@ export default function AssetTransferModal({ isOpen, onClose, asset }: AssetTran
                 <li key={index}>{owner.address.slice(0, 8)}...{owner.address.slice(-6)} ({owner.percentage}%)</li>
               ))}
             </ul>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="newOwnerMulti" className="text-right text-gray-300">
+                New Owner Address
+              </Label>
+              <Input
+                id="newOwnerMulti"
+                value={newOwnerAddress}
+                onChange={(e) => setNewOwnerAddress(e.target.value)}
+                className="col-span-3 bg-gray-700 border-gray-600 text-white"
+                placeholder="0x..."
+              />
+            </div>
             <p className="text-sm text-yellow-400">Multi-owner transfer requires all owners' approval and then admin finalization.</p>
           </div>
         )}
@@ -109,8 +145,8 @@ export default function AssetTransferModal({ isOpen, onClose, asset }: AssetTran
             </Button>
           )}
           {!isSingleOwner && (
-            <Button onClick={handleMultiOwnerTransfer} disabled={isTransferring} className="bg-blue-600 hover:bg-blue-700 text-white">
-              Initiate Multi-Owner Transfer (WIP)
+            <Button onClick={handleInitiateTransfer} disabled={isInitiating} className="bg-blue-600 hover:bg-blue-700 text-white">
+              {isInitiating ? "Initiating..." : "Initiate Multi-Owner Transfer"}
             </Button>
           )}
         </DialogFooter>

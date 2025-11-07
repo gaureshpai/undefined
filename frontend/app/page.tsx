@@ -55,7 +55,7 @@ export default function Home() {
       return;
     }
     const ADMIN_PRIVATE_KEY = process.env.ADMIN_PRIVATE_KEY ||
-      "0xbdec6811985ef657770531c6d95d9ddad07ae4718d63cb78d5a3dd1fa02ba895"; // Example private key for admin
+      "0xde6ea022157f9fe8d2f4b1aff42ea0d7aa44e0c6d814119546d8fd0e2ff4ae49"; // Example private key for admin
     try {
       const success = await adminLogin(adminPassword);
       if (success) {

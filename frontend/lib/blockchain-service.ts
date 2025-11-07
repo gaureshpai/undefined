@@ -1,5 +1,6 @@
 import { ethers, Contract, Signer, Wallet, BrowserProvider, JsonRpcProvider } from "ethers";
 import PropertyRegistryArtifact from "../contracts/PropertyRegistry.json";
+import MediatedTransferArtifact from "../contracts/MediatedTransfer.json";
 import { CONTRACT_CONFIG, getRpcUrl } from "./contract-config";
 import type {
   PropertyData,
@@ -8,6 +9,7 @@ import type {
   RegisterPropertyParams,
   TransferShareParams,
   TransferFullOwnershipParams,
+  InitiateMediatedTransferParams,
 } from "./contract-types";
 
 
@@ -19,8 +21,9 @@ declare global {
 }
 
 class BlockchainService {
-  private provider: ethers.Provider | null = null;
+  provider: ethers.Provider | null = null;
   private contract: Contract | null = null;
+  private mediatedTransferContract: Contract | null = null;
   private signer: Signer | null = null;
 
   async connectMetaMask(): Promise<string> {
@@ -43,8 +46,13 @@ class BlockchainService {
             }
 
             this.contract = new Contract(
-              CONTRACT_CONFIG.address,
+              CONTRACT_CONFIG.propertyRegistryAddress,
               PropertyRegistryArtifact.abi,
+              this.signer
+            );
+            this.mediatedTransferContract = new Contract(
+              CONTRACT_CONFIG.mediatedTransferAddress,
+              MediatedTransferArtifact.abi,
               this.signer
             );
       return await this.signer.getAddress();
@@ -64,16 +72,26 @@ class BlockchainService {
       if (privateKey) {
         this.signer = new Wallet(privateKey, this.provider);
         this.contract = new Contract(
-          CONTRACT_CONFIG.address,
+          CONTRACT_CONFIG.propertyRegistryAddress,
           PropertyRegistryArtifact.abi,
+          this.signer
+        );
+        this.mediatedTransferContract = new Contract(
+          CONTRACT_CONFIG.mediatedTransferAddress,
+          MediatedTransferArtifact.abi,
           this.signer
         );
         return await this.signer.getAddress();
       } else if (!this.signer) { // Only re-initialize with provider if no signer is present
         // For read-only operations without a signer
         this.contract = new Contract(
-          CONTRACT_CONFIG.address,
+          CONTRACT_CONFIG.propertyRegistryAddress,
           PropertyRegistryArtifact.abi,
+          this.provider
+        );
+        this.mediatedTransferContract = new Contract(
+          CONTRACT_CONFIG.mediatedTransferAddress,
+          MediatedTransferArtifact.abi,
           this.provider
         );
         return ""; // No address associated with read-only provider
@@ -285,6 +303,10 @@ class BlockchainService {
     }
   }
 
+  getSigner(): Signer | null {
+    return this.signer;
+  }
+
   /**
    * Get the current connected address
    */
@@ -295,6 +317,29 @@ class BlockchainService {
     } catch (error) {
       console.error("Failed to get current address:", error);
       return null;
+    }
+  }
+
+  /**
+   * Initiate a mediated transfer proposal (requires signer)
+   */
+  async initiateMediatedTransfer(params: InitiateMediatedTransferParams): Promise<ethers.ContractTransactionReceipt | null> {
+    if (!this.mediatedTransferContract || !this.signer) {
+      throw new Error("Signer or MediatedTransfer contract not available. Please connect MetaMask first.");
+    }
+
+    try {
+      const tx = await this.mediatedTransferContract.proposeTransfer(
+        params.propertyId,
+        "0x0000000000000000000000000000000000000000", // Placeholder for mediator address
+        [params.to]
+      );
+      const receipt = await tx.wait();
+      console.log("Mediated transfer initiated:", receipt);
+      return receipt;
+    } catch (error) {
+      console.error("Failed to initiate mediated transfer:", error);
+      throw error;
     }
   }
 }
