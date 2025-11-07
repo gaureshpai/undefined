@@ -13,6 +13,8 @@ import { ethers } from "ethers";
 
 import { Skeleton } from "@/components/ui/skeleton";
 
+import Link from "next/link";
+
 export default function MarketplacePage() {
   const { user } = useAuth();
   const [listings, setListings] = useState<MarketplaceListing[]>([]);
@@ -67,7 +69,8 @@ export default function MarketplacePage() {
     fetchListings();
   }, []);
 
-  const handleBuy = async (listing: MarketplaceListing) => {
+  const handleBuy = async (e: React.MouseEvent, listing: MarketplaceListing) => {
+    e.stopPropagation(); // Prevent navigation
     const buyAmount = amountToBuy[listing.listingId] || 0;
     if (buyAmount <= 0 || buyAmount > listing.amount) {
       toast.error(`Please enter a valid amount to buy (1-${listing.amount}).`);
@@ -94,6 +97,14 @@ export default function MarketplacePage() {
     } finally {
       setIsBuying((prev) => ({ ...prev, [listing.listingId]: false }));
     }
+  };
+
+  const handleAmountToBuyChange = (e: React.ChangeEvent<HTMLInputElement>, listingId: number) => {
+    e.stopPropagation(); // Prevent navigation
+    setAmountToBuy((prev) => ({
+      ...prev,
+      [listingId]: Number(e.target.value),
+    }));
   };
 
   if (loading) {
@@ -150,67 +161,65 @@ export default function MarketplacePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {displayListings.map((listing) => (
-              <Card key={listing.listingId}>
-                <CardHeader className="flex-row items-center gap-4">
-                  {listing.imageUrl && (
-                    <img src={listing.imageUrl} alt={listing.propertyName} className="w-16 h-16 object-cover rounded-md" />
-                  )}
-                  <div className="flex-1">
-                    <CardTitle>{listing.propertyName}</CardTitle>
-                    <CardDescription>
-                      Listed by: {listing.seller}
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-foreground">
-                    Amount: {listing.amount} shares
-                  </p>
-                  <p className="text-sm text-foreground">
-                    Price per share: {listing.pricePerShare} ETH
-                  </p>
-                  <p className="text-sm text-muted-foreground font-mono break-all mt-2">
-                    Fractional NFT: {listing.fractionalNFTAddress}
-                  </p>
+              <Link key={listing.listingId} href={`/marketplace/${listing.propertyId}`} className="block">
+                <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+                  <CardHeader className="flex-row items-center gap-4">
+                    {listing.imageUrl && (
+                      <img src={listing.imageUrl} alt={listing.propertyName} className="w-16 h-16 object-cover rounded-md" />
+                    )}
+                    <div className="flex-1">
+                      <CardTitle>{listing.propertyName}</CardTitle>
+                      <CardDescription>
+                        Listed by: {listing.seller}
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-foreground">
+                      Amount: {listing.amount} shares
+                    </p>
+                    <p className="text-sm text-foreground">
+                      Price per share: {listing.pricePerShare} ETH
+                    </p>
+                    <p className="text-sm text-muted-foreground font-mono break-all mt-2">
+                      Fractional NFT: {listing.fractionalNFTAddress}
+                    </p>
 
-                  {user.isConnected ? (
-                    listing.seller.toLowerCase() !== user.address?.toLowerCase() ? (
-                      <div className="mt-4 space-y-2">
-                        <div className="grid grid-cols-3 items-center gap-4">
-                          <Label htmlFor={`amount-to-buy-${listing.listingId}`} className="text-right text-foreground">
-                            Buy Amount
-                          </Label>
-                          <Input
-                            id={`amount-to-buy-${listing.listingId}`}
-                            type="number"
-                            placeholder={`1-${listing.amount}`}
-                            value={amountToBuy[listing.listingId] || ""}
-                            onChange={(e) =>
-                              setAmountToBuy((prev) => ({
-                                ...prev,
-                                [listing.listingId]: Number(e.target.value),
-                              }))
-                            }
-                            min="1"
-                            max={listing.amount}
-                          />
+                    {user.isConnected ? (
+                      listing.seller.toLowerCase() !== user.address?.toLowerCase() ? (
+                        <div className="mt-4 space-y-2">
+                          <div className="grid grid-cols-3 items-center gap-4">
+                            <Label htmlFor={`amount-to-buy-${listing.listingId}`} className="text-right text-foreground">
+                              Buy Amount
+                            </Label>
+                            <Input
+                              id={`amount-to-buy-${listing.listingId}`}
+                              type="number"
+                              placeholder={`1-${listing.amount}`}
+                              value={amountToBuy[listing.listingId] || ""}
+                              onChange={(e) => handleAmountToBuyChange(e, listing.listingId)}
+                              onClick={(e) => e.stopPropagation()} // Prevent Link navigation
+                              min="1"
+                              max={listing.amount}
+                            />
+                          </div>
+                          <Button
+                            onClick={(e) => handleBuy(e, listing)}
+                            disabled={isBuying[listing.listingId]}
+                            className="w-full"
+                          >
+                            {isBuying[listing.listingId] ? "Buying..." : "Buy Shares"}
+                          </Button>
                         </div>
-                        <Button
-                          onClick={() => handleBuy(listing)}
-                          disabled={isBuying[listing.listingId]}
-                          className="w-full"
-                        >
-                          {isBuying[listing.listingId] ? "Buying..." : "Buy Shares"}
-                        </Button>
-                      </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground mt-4">You own this listing.</p>
+                      )
                     ) : (
-                      <p className="text-sm text-muted-foreground mt-4">You own this listing.</p>
-                    )
-                  ) : (
-                    <p className="text-xs text-muted-foreground mt-4">Connect/sign in to buy</p>
-                  )}
-                </CardContent>
-              </Card>
+                      <p className="text-xs text-muted-foreground mt-4">Connect/sign in to buy</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}
