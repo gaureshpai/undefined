@@ -99,8 +99,6 @@ export default function PortfolioDashboard() {
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
       <div className="absolute inset-0 bg-linear-to-br from-gray-900 via-gray-800 to-black opacity-50"></div>
-      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-5"></div>
-      {/* Header */}
       <div className="border-b border-gray-700 bg-gray-800/60 backdrop-blur-lg sticky top-0 z-50 shadow-md shadow-blue-500/10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
