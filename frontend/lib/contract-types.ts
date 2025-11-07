@@ -1,14 +1,9 @@
 // TypeScript types for PropertyRegistry contract
 
-export interface PropertyOwner {
-  wallet: string;
-  percentage: number;
-}
-
 export interface PropertyData {
   id: number;
   name: string;
-  ownersCount: number;
+  owner: string;
   partnershipAgreementUrl: string;
   maintenanceAgreementUrl: string;
   rentAgreementUrl: string;
@@ -18,7 +13,7 @@ export interface PropertyData {
 export interface PropertyDetails {
   id: number;
   name: string;
-  owners: PropertyOwner[];
+  owner: string;
   partnershipAgreementUrl: string;
   maintenanceAgreementUrl: string;
   rentAgreementUrl: string;
@@ -29,45 +24,33 @@ export interface PropertyDetails {
 export interface PropertyRegisteredEvent {
   propertyId: bigint;
   name: string;
-}
-
-export interface ShareTransferredEvent {
-  propertyId: bigint;
-  from: string;
-  to: string;
-  percent: bigint;
-}
-
-export interface PropertyFullyTransferredEvent {
-  propertyId: bigint;
-  from: string;
-  to: string;
+  owner: string;
 }
 
 // Contract method parameters
 export interface RegisterPropertyParams {
   name: string;
-  owners: string[];
-  shares: number[];
+  owner: string;
   partnershipAgreementUrl: string;
   maintenanceAgreementUrl: string;
   rentAgreementUrl: string;
   imageUrl: string;
 }
 
-export interface TransferShareParams {
-  propertyId: number;
-  to: string;
-  percent: number;
+export interface FractionalNFTDetails {
+  address: string;
+  name: string;
+  symbol: string;
+  totalSupply: number;
 }
 
-export interface TransferFullOwnershipParams {
+export interface OwnedFractionalNFT {
   propertyId: number;
-  to: string;
-}
-
-export interface InitiateMediatedTransferParams {
-  propertyId: number;
-  to: string;
-  from: string;
+  propertyName: string;
+  fractionalNFTAddress: string;
+  fractionalNFTName: string;
+  fractionalNFTSymbol: string;
+  totalSupply: number;
+  balance: number;
+  percentage: number;
 }

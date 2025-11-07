@@ -6,31 +6,32 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-export default function EnhancedRequestsList({ propertyId }: { propertyId: number }) {
+export default function RequestsList() {
   const [requests, setRequests] = useState<Request[]>([]);
 
   useEffect(() => {
     const fetchRequests = async () => {
-      const fetchedRequests = await requestService.getRequestsForProperty(propertyId);
-      setRequests(fetchedRequests);
+      // In a real app, you'd fetch all requests here
+      const allRequests = await requestService.getAllRequests();
+      setRequests(allRequests);
     };
     fetchRequests();
-  }, [propertyId]);
+  }, []);
 
   const handleApprove = async (requestId: number) => {
     await requestService.updateRequestStatus(requestId, "Approved");
-    const updatedRequests = await requestService.getRequestsForProperty(propertyId);
+    const updatedRequests = await requestService.getRequestsForProperty(1);
     setRequests(updatedRequests);
   };
 
   const handleReject = async (requestId: number) => {
     await requestService.updateRequestStatus(requestId, "Rejected");
-    const updatedRequests = await requestService.getRequestsForProperty(propertyId);
+    const updatedRequests = await requestService.getRequestsForProperty(1);
     setRequests(updatedRequests);
   };
 
   if (requests.length === 0) {
-    return <p>No requests for this property.</p>;
+    return <p>No requests found.</p>;
   }
 
   return (
@@ -41,6 +42,7 @@ export default function EnhancedRequestsList({ propertyId }: { propertyId: numbe
             <CardTitle className="text-white">Request #{request.id}</CardTitle>
           </CardHeader>
           <CardContent>
+            <p className="text-slate-400">Property ID: {request.propertyId}</p>
             <p className="text-slate-400">Requester: {request.requester}</p>
             <p className="text-slate-400">Type: {request.requestType}</p>
             <p className="text-slate-400">Details: {request.details}</p>

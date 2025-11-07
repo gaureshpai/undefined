@@ -3,7 +3,8 @@
 import type React from "react";
 
 import { useState } from "react";
-import { useAssetStore } from "@/lib/store";
+import { blockchainService } from "@/lib/blockchain-service";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, FileCheck, AlertCircle, Trash2 } from "lucide-react";
+import { Upload, FileCheck, AlertCircle } from "lucide-react";
 import { uploadFileToAzure } from "@/lib/azure-blob-storage";
 
 interface FileUpload {
@@ -25,11 +26,9 @@ interface FileUpload {
 }
 
 export default function CreateBuildingForm() {
-  const { registerPropertyOnBlockchain } = useAssetStore();
   const [formData, setFormData] = useState({
     name: "",
-    location: "",
-    owners: [{ address: "", percentage: 100 }],
+    owner: "",
   });
   const [files, setFiles] = useState<FileUpload>({
     partnershipAgreement: null,
@@ -61,53 +60,13 @@ export default function CreateBuildingForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleOwnerChange = (
-    index: number,
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const { name, value } = e.target;
-    const newOwners = [...formData.owners];
-    newOwners[index] = {
-      ...newOwners[index],
-      [name]: name === "percentage" ? Number(value) : value,
-    };
-    setFormData((prev) => ({ ...prev, owners: newOwners }));
-  };
-
-  const addOwner = () => {
-    setFormData((prev) => ({
-      ...prev,
-      owners: [...prev.owners, { address: "", percentage: 0 }],
-    }));
-  };
-
-  const removeOwner = (index: number) => {
-    const newOwners = [...formData.owners];
-    newOwners.splice(index, 1);
-    setFormData((prev) => ({ ...prev, owners: newOwners }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccess(false);
 
-    if (!formData.name || !formData.location) {
+    if (!formData.name || !formData.owner) {
       setErrorMsg("Please fill in all required fields");
-      return;
-    }
-
-    if (formData.owners.some((owner) => !owner.address || !owner.percentage)) {
-      setErrorMsg("Please fill in all owner fields");
-      return;
-    }
-
-    const totalPercentage = formData.owners.reduce(
-      (acc, owner) => acc + Number(owner.percentage),
-      0
-    );
-    if (totalPercentage !== 100) {
-      setErrorMsg("Total ownership percentage must be 100%");
       return;
     }
 
@@ -129,24 +88,19 @@ export default function CreateBuildingForm() {
       const rentAgreementUrl = await uploadFileToAzure(files.rentAgreement);
       const imageUrl = await uploadFileToAzure(files.imageFile);
 
-      const ownerAddresses = formData.owners.map((owner) => owner.address);
-      const ownerShares = formData.owners.map((owner) => owner.percentage);
-
-      await registerPropertyOnBlockchain(
-        formData.name,
-        ownerAddresses,
-        ownerShares,
+      await blockchainService.registerProperty({
+        name: formData.name,
+        owner: formData.owner,
         partnershipAgreementUrl,
         maintenanceAgreementUrl,
         rentAgreementUrl,
         imageUrl
-      );
+      });
 
       setSuccess(true);
       setFormData({
         name: "",
-        location: "",
-        owners: [{ address: "", percentage: 100 }],
+        owner: "",
       });
       setFiles({
         partnershipAgreement: null,
@@ -156,12 +110,14 @@ export default function CreateBuildingForm() {
       });
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to register property on blockchain.");
-    } finally {
+    }
+    finally {
       setUploading(false);
     }
 
     setTimeout(() => setSuccess(false), 5000);
   };
+
 
   return (
     <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
@@ -213,72 +169,18 @@ export default function CreateBuildingForm() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-200">
-                Location *
+                Owner Wallet Address *
               </label>
               <Input
                 type="text"
-                name="location"
-                placeholder="e.g., Manhattan, NY"
-                value={formData.location}
+                name="owner"
+                placeholder="0x..."
+                value={formData.owner}
                 onChange={handleInputChange}
-                className="bg-slate-700/50 border-slate-600 text-white"
+                className="bg-slate-700/50 border-slate-600 text-white font-mono text-xs"
                 required
               />
             </div>
-
-            {formData.owners.map((owner, index) => (
-              <div key={index} className="grid grid-cols-12 gap-4 items-end">
-                <div className="space-y-2 col-span-6">
-                  <label className="text-sm font-medium text-slate-200">
-                    Owner Wallet Address *
-                  </label>
-                  <Input
-                    type="text"
-                    name="address"
-                    placeholder="0x..."
-                    value={owner.address}
-                    onChange={(e) => handleOwnerChange(index, e)}
-                    className="bg-slate-700/50 border-slate-600 text-white font-mono text-xs"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2 col-span-4">
-                  <label className="text-sm font-medium text-slate-200">
-                    Ownership % *
-                  </label>
-                  <Input
-                    type="number"
-                    name="percentage"
-                    placeholder="100"
-                    min="1"
-                    max="100"
-                    value={owner.percentage}
-                    onChange={(e) => handleOwnerChange(index, e)}
-                    className="bg-slate-700/50 border-slate-600 text-white"
-                    required
-                  />
-                </div>
-                <div className="col-span-2 flex items-end">
-                  {formData.owners.length > 1 && (
-                    <Button
-                      type="button"
-                      onClick={() => removeOwner(index)}
-                      className="bg-red-500 hover:bg-red-600 text-white"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-            <Button
-              type="button"
-              onClick={addOwner}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              + Add Owner
-            </Button>
           </div>
 
           {/* Document Uploads */}

@@ -3,28 +3,36 @@ import { ethers } from "hardhat";
 async function main() {
   console.log("Deploying PropertyRegistry contract...");
 
-  // Get the contract factory
+  const [deployer] = await ethers.getSigners();
+
+  // Get the contract factory for PropertyRegistry
   const PropertyRegistry = await ethers.getContractFactory("PropertyRegistry");
   
-  // Deploy the contract
+  // Deploy the PropertyRegistry contract
   const propertyRegistry = await PropertyRegistry.deploy();
   await propertyRegistry.deployed();
 
   console.log("PropertyRegistry deployed to:", propertyRegistry.address);
 
-  // Optional: Register a sample property after deployment
+  console.log("\nDeploying Fractionalizer contract...");
+
+  // Get the contract factory for Fractionalizer
+  const Fractionalizer = await ethers.getContractFactory("Fractionalizer");
+
+  // Deploy the Fractionalizer contract, passing the PropertyRegistry address
+  const fractionalizer = await Fractionalizer.deploy(propertyRegistry.address);
+  await fractionalizer.deployed();
+
+  console.log("Fractionalizer deployed to:", fractionalizer.address);
+
+  // Optional: Register a sample property and fractionalize it
   console.log("\nRegistering sample property...");
   
-  const owners = [
-    "0x37f41DF9F35ea7a5EFdfBF5203fB8d4C442fc667",
-    "0x628E0e4e85662bE09089c37753d34c5FF4539a32",
-  ];
-  const shares = [60, 40]; // Percentages that sum to 100
-
+  // Ensure the deployer is the owner of the PropertyRegistry to call registerProperty
+  // The registerProperty function now takes the owner as an argument
   const tx = await propertyRegistry.registerProperty(
     "Green Villa",
-    owners,
-    shares,
+    deployer.address, // The deployer will be the initial owner of the NFT
     "https://example.com/partnership-agreement.pdf", // Placeholder URL
     "https://example.com/maintenance-agreement.pdf", // Placeholder URL
     "https://example.com/rent-agreement.pdf", // Placeholder URL
@@ -32,22 +40,31 @@ async function main() {
   );
   await tx.wait();
 
-  const ty = await propertyRegistry.getProperty(1);
-  console.log("Registered Property Details:", ty);
+  const propertyId = 1; // Assuming the first registered property gets ID 1
+  const propertyDetails = await propertyRegistry.getProperty(propertyId);
+  console.log("Registered Property Details:", propertyDetails);
 
   console.log("Sample property 'Green Villa' registered successfully!");
-  console.log("Property Count:", (await propertyRegistry.propertyCount()).toString());
 
-  console.log("\nDeploying MediatedTransfer contract...");
+  console.log("\nFractionalizing the sample property...");
 
-  // Get the contract factory
-  const MediatedTransfer = await ethers.getContractFactory("MediatedTransfer");
+  // Fractionalize the NFT
+  const fractionalizeTx = await fractionalizer.fractionalizeNFT(
+    propertyId,
+    "GreenVillaShares",
+    "GVS",
+    1000 // Total supply of fractional tokens
+  );
+  await fractionalizeTx.wait();
 
-  // Deploy the contract
-  const mediatedTransfer = await MediatedTransfer.deploy(propertyRegistry.address);
-  await mediatedTransfer.deployed();
+  const fractionalNFTAddress = await fractionalizer.nftFractions(propertyId);
+  console.log("Fractional NFT contract deployed to:", fractionalNFTAddress);
 
-  console.log("MediatedTransfer deployed to:", mediatedTransfer.address);
+  const FractionalNFT = await ethers.getContractFactory("FractionalNFT");
+  const fractionalNFT = FractionalNFT.attach(fractionalNFTAddress);
+
+  const deployerBalance = await fractionalNFT.balanceOf(deployer.address);
+  console.log("Deployer's fractional token balance:", deployerBalance.toString());
 }
 
 main()

@@ -1,4 +1,8 @@
 // Smart contract configuration
+import PropertyRegistryABI from "../contracts/PropertyRegistry.json";
+import FractionalizerABI from "../contracts/Fractionalizer.json";
+import FractionalNFTABI from "../contracts/FractionalNFT.json";
+
 export const CONTRACT_CONFIG = {
   // Update this address after deploying the contract
   // You can get this from the deployment script output

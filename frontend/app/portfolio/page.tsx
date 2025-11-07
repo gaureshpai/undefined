@@ -5,29 +5,22 @@ import { useRouter } from "next/navigation"
 import { useAssetStore } from "@/lib/store"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { LogOut, TrendingUp, Building2, Wallet, FileCheck } from "lucide-react"
+import { LogOut, Building2, Wallet } from "lucide-react"
 import { useEffect, useState } from "react"
-import AssetTransferModal from "@/components/user/asset-transfer-modal";
-import { BuildingAsset } from "@/lib/asset-data"
+import { OwnedFractionalNFT } from "@/lib/contract-types"
+import AssetTransferModal from "@/components/user/asset-transfer-modal"
 
 interface OwnershipData {
   totalAssets: number
-  totalValue: string
-  fractionalOwnership: Array<{
-    buildingName: string
-    percentage: number
-    tokenId: string
-  }>
+  fractionalOwnership: OwnedFractionalNFT[]
 }
 
 export default function PortfolioDashboard() {
   const router = useRouter()
   const { user, logout } = useAuth()
-  const { buildings } = useAssetStore()
+  const { ownedFractionalNFTs, loadOwnedFractionalNFTs } = useAssetStore()
   const [ownershipData, setOwnershipData] = useState<OwnershipData | null>(null)
   const [mounted, setMounted] = useState(false)
-  const [showTransferModal, setShowTransferModal] = useState(false);
-  const [selectedAssetForTransfer, setSelectedAssetForTransfer] = useState<BuildingAsset | null>(null);
 
   useEffect(() => {
     setMounted(true)
@@ -39,53 +32,26 @@ export default function PortfolioDashboard() {
       return
     }
 
-    // Load properties from blockchain on mount
-    const loadBlockchainData = async () => {
-      const { loadPropertiesFromBlockchain } = useAssetStore.getState();
-      await loadPropertiesFromBlockchain(user.address);
+    const loadData = async () => {
+      if(user.address)
+        await loadOwnedFractionalNFTs(user.address);
     };
 
-    loadBlockchainData();
-  }, [user, router])
+    loadData();
+  }, [user, loadOwnedFractionalNFTs, router])
 
   useEffect(() => {
     if (!user.isConnected) return;
 
-    // Calculate user's ownership portfolio from blockchain data
-    const userAssets = buildings
-      .filter((b:any) => b.status === "approved" && b.fractionalOwnership?.some((o:any) => o.address === user.address))
-      .map((b:any) => {
-        const ownership = b.fractionalOwnership?.find((o:any) => o.address === user.address)
-        return {
-          buildingName: b.name,
-          percentage: ownership?.percentage || 0,
-          tokenId: b.tokenId,
-        }
-      })
-
     setOwnershipData({
-      totalAssets: userAssets.length,
-      totalValue: `$${(Math.random() * 1000000 + 500000).toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
-      fractionalOwnership: userAssets,
+      totalAssets: ownedFractionalNFTs.length,
+      fractionalOwnership: ownedFractionalNFTs,
     })
-  }, [user, buildings])
+  }, [user, ownedFractionalNFTs])
 
   const handleLogout = async () => {
     await logout();
     router.push("/");
-  };
-
-  const handleOpenTransferModal = (asset: BuildingAsset) => {
-    setSelectedAssetForTransfer(asset);
-    setShowTransferModal(true);
-  };
-
-  const handleCloseTransferModal = () => {
-    setShowTransferModal(false);
-    setSelectedAssetForTransfer(null);
-    // Optionally, refresh the portfolio data after a transfer attempt
-    const { loadPropertiesFromBlockchain } = useAssetStore.getState();
-    loadPropertiesFromBlockchain(user.address);
   };
 
   if (!mounted || !ownershipData) {
@@ -128,7 +94,7 @@ export default function PortfolioDashboard() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card className="border-gray-700 bg-gray-800/60 backdrop-blur-lg shadow-lg shadow-blue-500/10">
             <CardHeader className="pb-3">
               <CardTitle className="text-gray-400 text-sm flex items-center gap-2">
@@ -139,19 +105,6 @@ export default function PortfolioDashboard() {
             <CardContent>
               <div className="text-3xl font-bold text-white">{ownershipData.totalAssets}</div>
               <p className="text-xs text-gray-500 mt-1">Approved tokenized assets</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-gray-700 bg-gray-800/60 backdrop-blur-lg shadow-lg shadow-blue-500/10">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-gray-400 text-sm flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Portfolio Value
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-white">{ownershipData.totalValue}</div>
-              <p className="text-xs text-green-400 mt-1">+12% this month</p>
             </CardContent>
           </Card>
 
@@ -179,25 +132,23 @@ export default function PortfolioDashboard() {
           {ownershipData.fractionalOwnership.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {ownershipData.fractionalOwnership.map((holding, index) => {
-                // Find the full BuildingAsset object from the 'buildings' array
-                const fullAsset = buildings.find(b => b.tokenId === holding.tokenId);
-                if (!fullAsset) return null; // Should not happen if data is consistent
-
                 return (
                   <Card
                     key={index}
                     className="border-gray-700 bg-gray-800/60 backdrop-blur-lg hover:border-gray-600 transition-colors shadow-md hover:shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 cursor-pointer"
-                    onClick={() => handleOpenTransferModal(fullAsset)}
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
-                          <CardTitle className="text-white">{holding.buildingName}</CardTitle>
-                          <CardDescription className="text-gray-400">Token: {holding.tokenId}</CardDescription>
+                          <CardTitle className="text-white">{holding.propertyName}</CardTitle>
+                          <CardDescription className="text-gray-400">Token ID: {holding.propertyId}</CardDescription>
                         </div>
-                        <FileCheck className="w-5 h-5 text-green-500" />
                       </div>
                     </CardHeader>
+import AssetTransferModal from "@/components/user/asset-transfer-modal";
+
+// ... (imports)
+
                     <CardContent>
                       <div className="space-y-3">
                         <div>
@@ -209,15 +160,18 @@ export default function PortfolioDashboard() {
                                 style={{ width: `${holding.percentage}%` }}
                               ></div>
                             </div>
-                            <span className="text-sm font-bold text-white">{holding.percentage}%</span>
+                            <span className="text-sm font-bold text-white">{holding.percentage.toFixed(2)}%</span>
                           </div>
                         </div>
                         <div className="pt-2 border-t border-gray-700">
                           <p className="text-xs text-gray-500">
-                            You own <span className="text-white font-semibold">{holding.percentage}%</span> of this
+                            You own <span className="text-white font-semibold">{holding.percentage.toFixed(2)}%</span> of this
                             property
                           </p>
                         </div>
+                      </div>
+                      <div className="mt-4">
+                        <AssetTransferModal ownedNFT={holding} />
                       </div>
                     </CardContent>
                   </Card>
@@ -234,12 +188,6 @@ export default function PortfolioDashboard() {
             </Card>
           )}
         </div>
-
-        <AssetTransferModal
-          isOpen={showTransferModal}
-          onClose={handleCloseTransferModal}
-          asset={selectedAssetForTransfer}
-        />
       </div>
     </div>
   )

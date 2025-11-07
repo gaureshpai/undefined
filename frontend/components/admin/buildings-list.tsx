@@ -1,12 +1,64 @@
-"use client"
+import { useState, useEffect } from "react";
+import { blockchainService } from "@/lib/blockchain-service";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Building2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import FractionalizeNftForm from "./fractionalize-nft-form";
+import EnhancedRequestsList from "./enhanced-requests-list";
 
-import { useAssetStore } from "@/lib/store"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Building2, MapPin, User } from "lucide-react"
+// ... (imports)
 
 export default function BuildingsList() {
-  const { buildings } = useAssetStore()
+  const [buildings, setBuildings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
+  const [showRequests, setShowRequests] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchBuildings = async () => {
+      try {
+        await blockchainService.initialize();
+        const allBuildings = await blockchainService.getAllProperties();
+        setBuildings(allBuildings);
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch buildings.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBuildings();
+  }, []);
+
+  const handleFractionalizeClick = (propertyId: number) => {
+    setSelectedPropertyId(propertyId);
+  };
+
+  const handleShowRequestsClick = (propertyId: number) => {
+    setShowRequests(showRequests === propertyId ? null : propertyId);
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+        <CardContent className="pt-12 text-center">
+          <p className="text-slate-400">Loading buildings...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="border-slate-700 bg-slate-800/50 backdrop-blur-lg">
+        <CardContent className="pt-12 text-center">
+          <p className="text-red-400">{error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (buildings.length === 0) {
     return (
@@ -17,12 +69,12 @@ export default function BuildingsList() {
           <p className="text-sm text-slate-500 mt-1">Create your first tokenized asset</p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
     <div className="space-y-4">
-      {buildings.map((building:any) => (
+      {buildings.map((building: any) => (
         <Card
           key={building.id}
           className="border-slate-700 bg-slate-800/50 backdrop-blur-lg hover:border-slate-600 transition-colors"
@@ -35,69 +87,53 @@ export default function BuildingsList() {
                   {building.name}
                 </CardTitle>
                 <CardDescription className="text-slate-400 flex items-center gap-1 mt-1">
-                  <MapPin className="w-4 h-4" />
-                  {building.location}
+                  Token ID: {building.id}
                 </CardDescription>
               </div>
               <Badge
-                variant={
-                  building.status === "approved"
-                    ? "default"
-                    : building.status === "rejected"
-                      ? "destructive"
-                      : "secondary"
-                }
-                className={
-                  building.status === "approved"
-                    ? "bg-green-500/20 text-green-400 border-green-500/30"
-                    : building.status === "rejected"
-                      ? "bg-red-500/20 text-red-400 border-red-500/30"
-                      : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
-                }
+                variant="default"
+                className="bg-green-500/20 text-green-400 border-green-500/30"
               >
-                {building.status}
+                NFT Property
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <p className="text-xs text-slate-500 mb-1">Token ID</p>
-                <p className="text-sm font-mono text-slate-300">{building.tokenId}</p>
-              </div>
-              <div>
                 <p className="text-xs text-slate-500 mb-1">Owner</p>
                 <p className="text-sm font-mono text-slate-300 truncate">{building.owner.slice(0, 8)}...</p>
               </div>
               <div>
-                <p className="text-xs text-slate-500 mb-1">Created</p>
-                <p className="text-sm text-slate-300">{new Date(building.createdAt).toLocaleDateString()}</p>
+                <p className="text-xs text-slate-500 mb-1">Partnership Agreement</p>
+                <a href={building.partnershipAgreementUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:underline">View Document</a>
               </div>
               <div>
-                <p className="text-xs text-slate-500 mb-1">Documents</p>
-                <p className="text-sm text-slate-300">3 attached</p>
+                <p className="text-xs text-slate-500 mb-1">Maintenance Agreement</p>
+                <a href={building.maintenanceAgreementUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:underline">View Document</a>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 mb-1">Rent Agreement</p>
+                <a href={building.rentAgreementUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:underline">View Document</a>
               </div>
             </div>
-
-            {building.fractionalOwnership && building.fractionalOwnership.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-slate-700">
-                <p className="text-xs text-slate-500 mb-2">Ownership Structure</p>
-                <div className="space-y-2">
-                  {building.fractionalOwnership.map((owner:any, idx:number) => (
-                    <div key={idx} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <User className="w-3 h-3 text-slate-500" />
-                        <span className="font-mono text-slate-400 truncate">{owner.address.slice(0, 12)}...</span>
-                      </div>
-                      <span className="text-slate-300 font-semibold">{owner.percentage}%</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div className="mt-4 flex space-x-2">
+              <Button onClick={() => handleFractionalizeClick(building.id)} className="bg-purple-600 hover:bg-purple-700 text-white">
+                Fractionalize NFT
+              </Button>
+              <Button onClick={() => handleShowRequestsClick(building.id)} className="bg-blue-600 hover:bg-blue-700 text-white">
+                {showRequests === building.id ? "Hide" : "Show"} Requests
+              </Button>
+            </div>
+            {selectedPropertyId === building.id && (
+              <FractionalizeNftForm propertyId={selectedPropertyId|| 0} />
+            )}
+            {showRequests === building.id && (
+              <EnhancedRequestsList propertyId={building.id} />
             )}
           </CardContent>
         </Card>
       ))}
     </div>
-  )
+  );
 }

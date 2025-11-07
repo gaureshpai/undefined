@@ -21,6 +21,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
     "fp-ts": "^2.16.11"
   }
 }
