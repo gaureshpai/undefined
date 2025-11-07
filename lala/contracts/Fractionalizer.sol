@@ -26,11 +26,8 @@ contract Fractionalizer {
         require(propertyRegistry.ownerOf(_propertyId) == msg.sender, "Not the property owner");
         require(fractionalContracts[_propertyId] == address(0), "Already fractionalized");
 
-        // Deploy new ERC20 token for the property
+        // Deploy new ERC20 token for the property and mint all shares to the owner
         FractionalNFT fractionalToken = new FractionalNFT(_tokenName, _tokenSymbol, _totalShares, msg.sender);
-
-        // Mint all shares to the owner initially
-        fractionalToken.mint(msg.sender, _totalShares);
 
         // Save reference
         fractionalContracts[_propertyId] = address(fractionalToken);

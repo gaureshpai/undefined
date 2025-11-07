@@ -1,13 +1,18 @@
 'use server';
 
-import { Magic } from '@magic-sdk/admin';
+import { Magic } from 'magic-sdk';
 
 // In-memory database for users (store email and password mapping)
 // Note: In production, use a proper database with hashed passwords
 const users = new Map<string, { email: string; password: string }>();
 
 // Initialize Magic SDK Admin
-const magic = new Magic(process.env.MAGIC_SECRET_KEY);
+const magic = new Magic(process.env.MAGIC_SECRET_KEY!, {
+   network: {
+    rpcUrl: 'http://127.0.0.1:7545',
+    chainId: 1011,
+  }
+});
 
 interface AuthResponse {
   success: boolean;

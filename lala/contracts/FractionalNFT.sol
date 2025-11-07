@@ -17,6 +17,7 @@ contract FractionalNFT is ERC20, Ownable {
         address _owner
     ) ERC20(name_, symbol_) Ownable(_owner) {
         totalShares = _totalShares;
+        _mint(_owner, _totalShares);
     }
 
     function mint(address to, uint256 amount) external onlyOwner {
