@@ -82,16 +82,16 @@ export default function AssetTransferModal({ ownedNFT }: { ownedNFT: OwnedFracti
         CONTRACT_CONFIG.propertyRegistry.address,
         listAmount
       );
-      toast.info("Approval successful. Now listing NFT...");
+      console.log("Approval successful. Now listing NFT...");
 
       // Then, list the NFT for sale
       await blockchainService.listFractionalNFTForSale(
         ownedNFT.propertyId,
         ownedNFT.fractionalNFTAddress,
         listAmount,
-        ethers.parseEther(pricePerShare.toString()) // Convert price to WEI
+        pricePerShare // Convert price to WEI
       );
-      toast.success("NFT listed for sale successfully!");
+      console.log("NFT listed for sale successfully!");
       setIsModalOpen(false);
     } catch (err: any) {
       setError(err.message || "Failed to list NFT for sale.");

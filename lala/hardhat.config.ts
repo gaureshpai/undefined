@@ -14,10 +14,10 @@ const config: HardhatUserConfig = {
   },
   networks: {
     localhost: {
-      url: "https://a3298686ee98.ngrok-free.app/",
+      url: "http://127.0.0.1:7545",
       chainId: 1337,
       accounts: [
-        process.env.NEXT_PUBLIC_ADMIN_PRIVATE_KEY || "0x32e796ffc858b0a72f3638a244c8d8cd1d37b7a5f936d419e3a879f943551519",
+        process.env.NEXT_PUBLIC_ADMIN_PRIVATE_KEY || "0x94b1eef6aa03d83d8c5632ac792b9324aa1445832d9ba404ded5ad28d9c0af62",
       ],
     },
     hardhat: {

@@ -463,7 +463,7 @@ class BlockchainService {
     propertyId: number,
     fractionalNFTAddress: string,
     amount: number,
-    pricePerShare: bigint
+    pricePerShare: number
   ): Promise<ethers.ContractTransactionReceipt | null> {
     if (!this.propertyRegistryContract || !this.signer) {
       await this.initialize();
@@ -473,7 +473,8 @@ class BlockchainService {
         propertyId,
         fractionalNFTAddress,
         amount,
-        pricePerShare
+        pricePerShare,
+        { nonce: await this.signer!.getNonce() }
       );
       const receipt = await tx.wait();
       console.log("NFT listed for sale:", receipt);
@@ -504,7 +505,7 @@ class BlockchainService {
   async buyListedFractionalNFT(
     listingId: number,
     amountToBuy: number,
-    totalPrice: bigint
+    totalPrice: number
   ): Promise<ethers.ContractTransactionReceipt | null> {
     if (!this.propertyRegistryContract || !this.signer) {
       await this.initialize();

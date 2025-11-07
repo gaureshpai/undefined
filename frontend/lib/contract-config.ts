@@ -9,14 +9,14 @@ export const CONTRACT_CONFIG = {
     address:
       process.env.NEXT_PUBLIC_PROPERTY_REGISTRY_ADDRESS ||
       (process.env as any).NEXT_PUBLIC_PROPERTYREG ||
-      "0x0000000000000000000000000000000000000000",
+      "0xe576Ca7a29387968c2C4456F6df1f8aE17967fd2",
     abi: PropertyRegistryArtifact.abi,
   },
   fractionalizer: {
     address:
       process.env.NEXT_PUBLIC_FRACTIONALIZER_ADDRESS ||
       (process.env as any).NEXT_PUBLIC_FRACTIONALIZER ||
-      "0x0000000000000000000000000000000000000000",
+      "0x081303FaFA34A2fab3938617d4871DF5F6293832",
     abi: FractionalizerArtifact.abi,
   },
   fractionalNFT: {
@@ -26,7 +26,7 @@ export const CONTRACT_CONFIG = {
   // Network configuration - defaults; override with NEXT_PUBLIC_RPC_URL/CHAIN_ID
   network: {
     localhost: {
-      url: "https://a3298686ee98.ngrok-free.app/",
+      url: "HTTP://127.0.0.1:7545",
       chainId: 1337,
     },
     hardhat: {

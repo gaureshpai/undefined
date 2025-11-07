@@ -20,8 +20,8 @@ export const GANACHE_ACCOUNTS: Record<string, GanacheAccount> = {
   
   // Account 1
   "jtuluve@gmail.com": {
-    address: "0x1B06F17f783f553bD72F3E3F361Aa1bb598A3Af3",
-    privateKey: "0x86b2ca511b8143ed60423baf5b377e96c3496f333128cde8aa164831b8fd53fd",
+    address: "0xacdB8C87835879F4bFD24241CB80415F211C9Aea",
+    privateKey: "0x4976097baa692aeba712bd64cc564187641819b60d521b64502cd701e257024e",
     balance: "100",
   },
   

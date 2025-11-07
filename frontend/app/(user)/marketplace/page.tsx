@@ -59,7 +59,7 @@ export default function MarketplacePage() {
     setError(null);
 
     try {
-      const totalPrice = ethers.parseEther((buyAmount * Number(ethers.formatEther(listing.pricePerShare))).toString());
+      const totalPrice = (buyAmount * listing.pricePerShare);
       await blockchainService.buyListedFractionalNFT(
         listing.listingId,
         buyAmount,
@@ -137,7 +137,7 @@ export default function MarketplacePage() {
                     Amount: {listing.amount} shares
                   </p>
                   <p className="text-sm text-slate-300">
-                    Price per share: {ethers.formatEther(listing.pricePerShare)} ETH
+                    Price per share: {listing.pricePerShare} ETH
                   </p>
                   <p className="text-sm text-slate-300 font-mono break-all mt-2">
                     Fractional NFT: {listing.fractionalNFTAddress}
