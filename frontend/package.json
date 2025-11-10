@@ -1,6 +1,7 @@
 {
-  "name": "undefined",
+  "name": "AssetChain",
   "version": "1.0.0",
+  "description": "frontend folder for property registry contract",
   "private": true,
   "scripts": {
     "dev": "next dev",

@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report a bug in Undefined
+description: Report a bug in the Fractionalized NFT Real Estate Marketplace
 labels: ["bug"]
 body:
   - type: textarea
@@ -25,7 +25,7 @@ body:
     id: version
     attributes:
       label: Package Version
-      description: What version of Site are you using?
+      description: What version of the application are you using?
       placeholder: "1.0.0"
     validations:
       required: true

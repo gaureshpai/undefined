@@ -21,7 +21,7 @@ const config: HardhatUserConfig = {
       ],
     },
     hardhat: {
-      chainId: 31337,
+      chainId: 31337
     },
   },
 };
